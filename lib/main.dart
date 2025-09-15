@@ -88,7 +88,18 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                     ),
                   ),
-                  // Список организаций с hover
+                  //  списки с hover
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      hoverColor: Colors.grey.shade300,
+                      onTap: () {},
+                      child: const ListTile(
+                        leading: Icon(Icons.download),
+                        title: Text('Список организаций'),
+                      ),
+                    ),
+                  ),
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -103,18 +114,6 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                         );
                       },
-                      child: const ListTile(
-                        leading: Icon(Icons.download),
-                        title: Text('Скаченные списки'),
-                      ),
-                    ),
-                  ),
-                  //  списки с hover
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      hoverColor: Colors.grey.shade300,
-                      onTap: () {},
                       child: const ListTile(
                         leading: Icon(Icons.download),
                         title: Text('Скачанные списки'),
@@ -250,8 +249,20 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {},
-                              child: const Text("Открыть"),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const OrganizationListsPage(),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey.shade300,
+                                foregroundColor: Colors.black,
+                                minimumSize: const Size(160, 40), // ширина кнопки такая же, как у "Экспортировать в 1С"
+                              ),
+                              child: const Text('Открыть'),
                             ),
                           ],
                         ),
@@ -419,6 +430,162 @@ class DownloadedListsPage extends StatelessWidget {
                         minimumSize: const Size(160, 50), // та же ширина и высота
                       ),
                       child: const Text('Открыть'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+ // СТРАНИЦА СПИСОК НА ПРОХОЖДЕНИЕ
+
+class OrganizationListsPage extends StatefulWidget {
+  const OrganizationListsPage({super.key});
+
+  @override
+  State<OrganizationListsPage> createState() => _OrganizationListsPageState();
+}
+
+class _OrganizationListsPageState extends State<OrganizationListsPage> {
+  // Пример данных
+  final List<Map<String, dynamic>> lists = List.generate(
+    5,
+        (index) => {
+      'number': (index + 1).toString(),
+      'date': '15.09.2025 12:0${index}:00',
+      'organization': 'Компания №${index + 1}',
+      'downloaded': false, // флаг, скачан ли список
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Списки на прохождение',
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+            Text(
+              'Всего списков: ${lists.length}',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+        leading: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.menu, color: Colors.black),
+              onPressed: () {}, // открытие Drawer можно добавить позже
+            ),
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // TODO: логика скачивания всех списков
+            },
+            child: const Text(
+              'Скачать все',
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: lists.length,
+        itemBuilder: (context, index) {
+          final listItem = lists[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.15),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Левая часть с текстом
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Список на прохождение медосмотра No. ${listItem['number']}',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Дата создания: ${listItem['date']}',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Организация: ${listItem['organization']}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Правая часть с кнопками
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          // кнопка "удалить" пока не меняется
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        minimumSize: const Size(120, 36),
+                      ),
+                      child: const Text('Удалить'),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          // переключение состояния скачано/не скачано
+                          listItem['downloaded'] = !(listItem['downloaded']);
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                        listItem['downloaded'] ? Colors.grey.shade300 : Colors.blue,
+                        foregroundColor:
+                        listItem['downloaded'] ? Colors.black : Colors.white,
+                        minimumSize: const Size(120, 36),
+                      ),
+                      child: Text(listItem['downloaded'] ? 'Открыть' : 'Скачать'),
                     ),
                   ],
                 ),
