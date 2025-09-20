@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class PatientCard extends StatelessWidget {
+class PatientCard extends StatefulWidget {
   final String fullName;
   final String position;
   final String workplace;
@@ -12,6 +12,7 @@ class PatientCard extends StatelessWidget {
   final int testsTotal;
   final VoidCallback onContact;
   final VoidCallback onExamine;
+  final List<Map<String, dynamic>> specialists;
 
   const PatientCard({
     super.key,
@@ -26,7 +27,97 @@ class PatientCard extends StatelessWidget {
     required this.testsTotal,
     required this.onContact,
     required this.onExamine,
+    required this.specialists,
   });
+
+  @override
+  State<PatientCard> createState() => _PatientCardState();
+}
+
+class _PatientCardState extends State<PatientCard> {
+  final GlobalKey _specialistsButtonKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+  bool _showSpecialistsPanel = false;
+
+  void _toggleSpecialistsPanel() {
+    if (_showSpecialistsPanel) {
+      _removeOverlay();
+    } else {
+      _showOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    final renderBox = _specialistsButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final offset = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _removeOverlay, // закрываем панель при клике вне
+        child: Stack(
+          children: [
+            Positioned(
+              left: offset.dx,
+              top: offset.dy + size.height,
+              width: 450,
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: widget.specialists.map(
+                          (s) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s["title"],
+                                style: const TextStyle(fontSize: 12),
+                                softWrap: true,
+                              ),
+                            ),
+                            Text(
+                              s["status"] ? "Пройдено" : "Не пройдено",
+                              style: TextStyle(
+                                color: s["status"] ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ).toList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    _showSpecialistsPanel = true;
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _showSpecialistsPanel = false;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +130,6 @@ class PatientCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Вкладки
             const TabBar(
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.grey,
@@ -50,37 +140,32 @@ class PatientCard extends StatelessWidget {
                 Tab(text: "Согласие"),
               ],
             ),
-
-            // Содержимое вкладок
             SizedBox(
-              height: 260,
+              height: 270,
               child: TabBarView(
                 children: [
-                  _buildPatientInfoTab(),
-                  Center(child: Text("Прививки")), // заглушка
-                  Center(child: Text("ФЛГ")),      // заглушка
-                  Center(child: Text("Согласие")), // заглушка
+                  _buildTabContent(showVaccinationButton: false, contentText: "Основная информация"),
+                  _buildTabContent(showVaccinationButton: true, contentText: "Прививки"),
+                  _buildTabContent(showVaccinationButton: false, contentText: "ФЛГ"),
+                  _buildTabContent(showVaccinationButton: false, contentText: "Согласие"),
                 ],
               ),
             ),
-
             const Divider(height: 1),
-
-            // Нижние кнопки
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: onContact,
+                      onPressed: widget.onContact,
                       child: const Text("Контактные данные"),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: onExamine,
+                      onPressed: widget.onExamine,
                       child: const Text("Осмотреть"),
                     ),
                   ),
@@ -93,42 +178,44 @@ class PatientCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPatientInfoTab() {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            fullName,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          const Text("основное", style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 4),
-          Text(position, style: const TextStyle(fontSize: 14)),
-          const SizedBox(height: 2),
-          Text(workplace, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 4),
-          Text("Дата рождения: $birthDate", style: const TextStyle(fontSize: 12)),
-          Text("Возраст: $age", style: const TextStyle(fontSize: 12)),
-          const SizedBox(height: 8),
-          Column(
+  Widget _buildTabContent({bool showVaccinationButton = false, String? contentText}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Левая колонка: шапка с информацией
+        Container(
+          width: 220,
+          padding: const EdgeInsets.all(12),
+          color: Colors.grey.shade100,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(widget.fullName,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  softWrap: true),
+              const SizedBox(height: 2),
+              Text(widget.position, style: const TextStyle(fontSize: 14), softWrap: true),
+              const SizedBox(height: 2),
+              Text(widget.workplace, style: const TextStyle(fontSize: 12, color: Colors.grey), softWrap: true),
+              const SizedBox(height: 4),
+              Text("Дата рождения: ${widget.birthDate}", style: const TextStyle(fontSize: 12)),
+              Text("Возраст: ${widget.age}", style: const TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
               ElevatedButton.icon(
-                onPressed: () {},
+                key: _specialistsButtonKey,
+                onPressed: _toggleSpecialistsPanel,
                 icon: const Icon(Icons.person, size: 18),
-                label: Text("Специалисты $specialistsDone из $specialistsTotal"),
+                label: Text("Специалисты ${widget.specialistsDone} из ${widget.specialistsTotal}"),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   textStyle: const TextStyle(fontSize: 12),
                 ),
               ),
+              const SizedBox(height: 4),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.science, size: 18),
-                label: Text("Анализы $testsDone из $testsTotal"),
+                label: Text("Анализы ${widget.testsDone} из ${widget.testsTotal}"),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   textStyle: const TextStyle(fontSize: 12),
@@ -136,8 +223,40 @@ class PatientCard extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
+        ),
+
+        // Правая колонка: основной контент вкладки
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showVaccinationButton)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        child: const Icon(Icons.add),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Text(contentText ?? "Основной контент вкладки", style: const TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

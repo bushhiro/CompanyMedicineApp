@@ -69,6 +69,17 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         "testsDone": 3,
         "testsTotal": 4,
       },
+      {
+        "fullName": "Петрова Мария Сергеевна",
+        "position": "Врач-терапевт",
+        "workplace": "Медицинский центр «Здоровье»",
+        "birthDate": "05.07.1985",
+        "age": 40,
+        "specialistsDone": 2,
+        "specialistsTotal": 5,
+        "testsDone": 1,
+        "testsTotal": 3,
+      },
     ];
 
     return Scaffold(
@@ -145,7 +156,12 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
 
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 400, // запас по высоте, чтобы последняя карточка докручивалась
+                left: 12,
+                right: 12,
+              ),
               itemCount: patients.length,
               itemBuilder: (context, index) {
                 final p = patients[index];
@@ -160,11 +176,19 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                   testsDone: p["testsDone"] as int,
                   testsTotal: p["testsTotal"] as int,
                   onContact: () {
-                    debugPrint("Контактные данные ${p["fullName"]}");
+                    debugPrint("Контакты пациента: ${p["fullName"]}");
                   },
                   onExamine: () {
-                    debugPrint("Осмотреть ${p["fullName"]}");
+                    debugPrint("Осмотр пациента: ${p["fullName"]}");
                   },
+                  specialists: [
+                    {"title": "Заключение врача психиатра-нарколога", "status": false},
+                    {"title": "Заключение врача психиатра", "status": false},
+                    {"title": "Заключение врача невролога", "status": true},
+                    {"title": "Заключение врача терапевта", "status": false},
+                    {"title": "Электрокардиограмма Паспорт здоровья", "status": false},
+                    {"title": "Медицинское заключение медицинской комиссии", "status": true},
+                  ],
                 );
               },
             ),
