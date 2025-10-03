@@ -1,0 +1,34 @@
+{
+  "organizations": [
+    { "id": 1, "name": "Комитет соцзащиты", "address": "СПб, Невский пр., 1" },
+    { "id": 2, "name": "МЦ «Здоровье»", "address": "СПб, Литейный пр., 10" }
+  ],
+  "patients": [
+    {
+      "id": 1,
+      "fullName": "Иванов Иван Иванович",
+      "position": "Главный специалист",
+      "workplace": "Комитет соцзащиты",
+      "birthDate": "12.03.1980",
+      "age": 45,
+      "specialistsDone": 0,
+      "specialistsTotal": 6,
+      "testsDone": 3,
+      "testsTotal": 4,
+      "organizationId": 1
+    },
+    {
+      "id": 2,
+      "fullName": "Петрова Мария Сергеевна",
+      "position": "Врач-терапевт",
+      "workplace": "МЦ «Здоровье»",
+      "birthDate": "05.07.1985",
+      "age": 40,
+      "specialistsDone": 2,
+      "specialistsTotal": 5,
+      "testsDone": 1,
+      "testsTotal": 3,
+      "organizationId": 2
+    }
+  ]
+}
