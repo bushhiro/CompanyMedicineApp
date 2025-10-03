@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/widgets/custom_patient_card.dart';
 import '/widgets/custom_app_bar.dart';
+import '/widgets/custom_patient_form.dart';
 
 class PatientsListScreen extends StatefulWidget {
   final String listTitle;
@@ -21,81 +22,99 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   bool showWithDebts = false;
   String searchQuery = "";
 
+  final List<Map<String, dynamic>> patients = [
+    {
+      "fullName": "Иванов Иван Иванович",
+      "position": "Главный специалист",
+      "workplace":
+      "Комитет по социальной защите населения Ленинградской области",
+      "birthDate": "12.03.1980",
+      "age": 45,
+      "specialistsDone": 0,
+      "specialistsTotal": 6,
+      "testsDone": 3,
+      "testsTotal": 4,
+      "specialists": [
+        {"title": "Заключение врача психиатра-нарколога", "status": false},
+        {"title": "Заключение врача психиатра", "status": false},
+        {"title": "Заключение врача невролога", "status": true},
+        {"title": "Заключение врача терапевта", "status": false},
+        {"title": "ЭКГ Паспорт здоровья", "status": false},
+        {"title": "Медицинское заключение комиссии", "status": true},
+        {"title": "Медсестра", "status": false},
+      ],
+    },
+    {
+      "fullName": "Петрова Мария Сергеевна",
+      "position": "Врач-терапевт",
+      "workplace": "Медицинский центр «Здоровье»",
+      "birthDate": "05.07.1985",
+      "age": 40,
+      "specialistsDone": 2,
+      "specialistsTotal": 5,
+      "testsDone": 1,
+      "testsTotal": 3,
+      "specialists": [
+        {"title": "Заключение врача психиатра", "status": true},
+        {"title": "Заключение врача невролога", "status": true},
+        {"title": "Заключение врача терапевта", "status": false},
+        {"title": "Медицинское заключение комиссии", "status": false},
+        {"title": "Медсестра", "status": true},
+      ],
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // Заглушка списка пациентов
-    final patients = [
-      {
-        "fullName": "Иванов Иван Иванович",
-        "position": "Главный специалист",
-        "workplace": "Комитет по социальной защите населения Ленинградской области",
-        "birthDate": "12.03.1980",
-        "age": 45,
-        "specialistsDone": 0,
-        "specialistsTotal": 6,
-        "testsDone": 3,
-        "testsTotal": 4,
-      },
-      {
-        "fullName": "Петрова Мария Сергеевна",
-        "position": "Врач-терапевт",
-        "workplace": "Медицинский центр «Здоровье»",
-        "birthDate": "05.07.1985",
-        "age": 40,
-        "specialistsDone": 2,
-        "specialistsTotal": 5,
-        "testsDone": 1,
-        "testsTotal": 3,
-      },
-      {
-        "fullName": "Сидоров Алексей Петрович",
-        "position": "Старший специалист",
-        "workplace": "Городская больница №7",
-        "birthDate": "20.11.1978",
-        "age": 46,
-        "specialistsDone": 1,
-        "specialistsTotal": 4,
-        "testsDone": 2,
-        "testsTotal": 2,
-      },
-      {
-        "fullName": "Иванов Иван Иванович",
-        "position": "Главный специалист",
-        "workplace": "Комитет по социальной защите населения Ленинградской области",
-        "birthDate": "12.03.1980",
-        "age": 45,
-        "specialistsDone": 0,
-        "specialistsTotal": 6,
-        "testsDone": 3,
-        "testsTotal": 4,
-      },
-      {
-        "fullName": "Петрова Мария Сергеевна",
-        "position": "Врач-терапевт",
-        "workplace": "Медицинский центр «Здоровье»",
-        "birthDate": "05.07.1985",
-        "age": 40,
-        "specialistsDone": 2,
-        "specialistsTotal": 5,
-        "testsDone": 1,
-        "testsTotal": 3,
-      },
-    ];
-
     return Scaffold(
       appBar: CustomAppBar(
         title: widget.listTitle,
         subtitle: widget.organizationName,
         showBackButton: true,
-        showDownloadAll: true,
+        showDownloadAll: false,
+        showAddPatient: true,
         onBack: () => Navigator.pop(context),
-        onDownloadAll: () {
-          debugPrint("Добавить нового пациента");
+        onAddPatient: () {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => Dialog(
+              insetPadding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: PatientForm(
+                  onSave: (patient) {
+                    setState(() {
+                      patients.add({
+                        "fullName":
+                        "${patient.surname} ${patient.name} ${patient.patronymic}",
+                        "position": patient.position,
+                        "workplace": patient.workPlace,
+                        "birthDate": patient.birthDate != null
+                            ? "${patient.birthDate!.day.toString().padLeft(2, '0')}.${patient.birthDate!.month.toString().padLeft(2, '0')}.${patient.birthDate!.year}"
+                            : "",
+                        "age": patient.birthDate != null
+                            ? DateTime.now().year - patient.birthDate!.year
+                            : 0,
+                        "specialistsDone": 0,
+                        "specialistsTotal": 0,
+                        "testsDone": 0,
+                        "testsTotal": 0,
+                        "specialists": [
+                          {"title": "Медсестра", "status": false},
+                        ],
+                      });
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+          );
         },
       ),
       body: Column(
         children: [
-          // Ряд фильтров и поиска
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
@@ -153,18 +172,25 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.only(
                 top: 8,
-                bottom: 400, // запас по высоте, чтобы последняя карточка докручивалась
+                bottom: 400,
                 left: 12,
                 right: 12,
               ),
               itemCount: patients.length,
               itemBuilder: (context, index) {
                 final p = patients[index];
+
+                final specialists =
+                List<Map<String, dynamic>>.from(p["specialists"]);
+                final doctors =
+                specialists.where((s) => s["title"] != "Медсестра").toList();
+                final nurse =
+                specialists.where((s) => s["title"] == "Медсестра").toList();
+
                 return PatientCard(
                   fullName: p["fullName"] as String,
                   position: p["position"] as String,
@@ -172,23 +198,74 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                   birthDate: p["birthDate"] as String,
                   age: p["age"] as int,
                   specialistsDone: p["specialistsDone"] as int,
-                  specialistsTotal: p["specialistsTotal"] as int,
+                  specialistsTotal: doctors.length,
                   testsDone: p["testsDone"] as int,
                   testsTotal: p["testsTotal"] as int,
+                  specialists: doctors,
                   onContact: () {
                     debugPrint("Контакты пациента: ${p["fullName"]}");
                   },
                   onExamine: () {
-                    debugPrint("Осмотр пациента: ${p["fullName"]}");
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final allSpecialists = [...doctors, ...nurse];
+
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          title: Text("Осмотр ${p["fullName"]}"),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: allSpecialists.map((s) {
+                              final bool isNurse = s["title"] == "Медсестра";
+                              final status = s["status"] == true ? "Пройдено" : "Не пройдено";
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade100,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                  ),
+                                  onPressed: () {
+                                    debugPrint("Нажата кнопка: ${s["title"]}");
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(child: Text(s["title"])),
+                                      if (!isNurse)
+                                        Text(
+                                          status,
+                                          style: TextStyle(
+                                            color: status == "Пройдено"
+                                                ? Colors.green
+                                                : Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("Закрыть"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
-                  specialists: [
-                    {"title": "Заключение врача психиатра-нарколога", "status": false},
-                    {"title": "Заключение врача психиатра", "status": false},
-                    {"title": "Заключение врача невролога", "status": true},
-                    {"title": "Заключение врача терапевта", "status": false},
-                    {"title": "Электрокардиограмма Паспорт здоровья", "status": false},
-                    {"title": "Медицинское заключение медицинской комиссии", "status": true},
-                  ],
                 );
               },
             ),

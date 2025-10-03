@@ -8,7 +8,9 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool showSearchField;         // показывать кнопку поиска и поле
   final Function(String)? onSearch;   // колбек при вводе текста
   final bool showDownloadAll;         // показывать кнопку "Скачать все"
-  final VoidCallback? onDownloadAll;  // обработчик кнопки "Скачать все"
+  final VoidCallback? onDownloadAll;
+  final bool showAddPatient;// обработчик кнопки "Скачать все"
+  final VoidCallback? onAddPatient;
 
   const CustomAppBar({
     super.key,
@@ -20,6 +22,9 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.onSearch,
     this.showDownloadAll = false,
     this.onDownloadAll,
+    this.showAddPatient = false,
+    this.onAddPatient,
+
   });
 
   @override
@@ -124,6 +129,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 ),
               ),
             ),
+
+          if (widget.showAddPatient)
+            IconButton(onPressed: widget.onAddPatient, icon: Icon(Icons.person_add))
         ],
       ),
     );
