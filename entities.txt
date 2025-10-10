@@ -1,0 +1,414 @@
+// internal/domain/entities/analysis.go
+
+package entities
+
+import "time"
+
+type Analysis struct {
+	ID uint `gorm:"primarykey" json:"id" example:"1"`
+
+	Code  string `gorm:"not null" json:"code" example:"12-0739"`
+	Title string `gorm:"not null" json:"title" example:"EKG"`
+	Price uint   `gorm:"not null" json:"price" example:"100"`
+}
+
+type AnalysisOrderItem struct {
+	ID uint `gorm:"primarykey" json:"id"`
+
+	OrderID uint           `gorm:"not null;index" json:"order_id"`
+	Order   *AnalysisOrder `gorm:"foreignKey:OrderID" json:"-"`
+
+	AnalysisID uint      `gorm:"not null;index" json:"analysis_id"`
+	Analysis   *Analysis `gorm:"foreignKey:AnalysisID" json:"analysis"`
+
+	// Статус конкретного анализа
+	IsCompleted bool       `gorm:"default:false" json:"is_completed"` // Сдан или нет
+	CompletedAt *time.Time `json:"completed_at,omitempty"`            // Когда сдан
+
+	PriceAtAssignment uint `gorm:"not null" json:"price_at_assignment"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// AnalysisOrder - направление на анализы (промежуточная структура)
+type AnalysisOrder struct {
+	ID          uint      `gorm:"primarykey" json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	OrderNumber string    `gorm:"not null;uniqueIndex" json:"order_number"` // Номер направления (уникальный)
+
+	PatientID uint `gorm:"not null;index" json:"patient_id"`
+
+	OrderItems []AnalysisOrderItem `gorm:"foreignKey:OrderID" json:"order_items"`
+}
+
+// internal/domain/entities/consent_signature.go
+package entities
+
+import (
+	"time"
+)
+
+type ConsentSignature struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	PatientID uint      `gorm:"not null;index" json:"patient_id"`
+	Signature []byte    `gorm:"type:bytea;not null" json:"-"` // Бинарные данные подписи
+	Patient   Patient   `gorm:"foreignKey:PatientID" json:"-"`
+}
+
+//internal/domain/entities/doctor.go
+
+package entities
+
+import (
+	"time"
+)
+
+// Doctor представляет информацию о враче
+type Doctor struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	FullName     string `gorm:"not null" json:"full_name" example:"Иванов Иван Иванович"`
+	Phone        string `gorm:"unique;not null" json:"phone" example:"+79991234567"`
+	PasswordHash string `gorm:"not null" json:"-"`
+
+	Specializations []Specialization `gorm:"many2many:doctor_specializations" json:"-"`
+	Organizations   []Organization   `gorm:"many2many:doctor_organizations" json:"-"`
+}
+
+//internal/domain/entities/flg.go
+
+package entities
+
+import "time"
+
+type Flg struct {
+	ID        uint      `gorm:"primarykey" json:"id" example:"1"`
+	CreatedAt time.Time `json:"-"`
+
+	Organization string    `gorm:"not null" json:"organization" example:"Stavropol"`
+	Number       int       `gorm:"not null" json:"number" example:"984212"`
+	Result       string    `gorm:"not null" json:"result" example:"COVID"`
+	Date         time.Time `json:"date" example:"2023-10-15T14:30:00Z"`
+
+	PhotoURL *string `json:"photo_url,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+}
+
+//internal/domain/entities/harm_point.go
+
+package entities
+
+type HarmPoint struct {
+	ID    uint   `gorm:"primarykey" json:"id"`
+	Value string `gorm:"not null;" json:"value"`
+
+	ReceptionTemplates []ReceptionTemplate `gorm:"many2many:harm_point_reception_templates;"`
+}
+
+//internal/domain/entities/manual.go
+
+package entities
+
+import "time"
+
+// Общая сущность для справочников ключ-значение
+type ReferenceType string
+
+const (
+	RefTypeVaccineTitle             ReferenceType = "vaccine_title"
+	RefTypeVaccineMedication        ReferenceType = "vaccine_medication"
+	RefTypeVaccineDose              ReferenceType = "vaccine_dose"
+	RefTypeVaccineNumber            ReferenceType = "vaccine_number"
+	RefTypeVaccineCertificateNumber ReferenceType = "vaccine_certificate_number"
+	RefTypeVaccineBodyPart          ReferenceType = "vaccine_body_part"
+	RefTypeVaccineMethod            ReferenceType = "vaccine_method"
+	RefTypeVaccinePlace             ReferenceType = "vaccine_place"
+	RefTypePatientExaminationType   ReferenceType = "patient_examination_type"
+	RefTypePatientExaminationView   ReferenceType = "patient_examination_view"
+	RefTypePersonalDocumentType     ReferenceType = "personal_document_type"
+	RefTypeMandatoryReception       ReferenceType = "mandatory_reception"
+	RefTypeMandatoryAnalysis        ReferenceType = "mandatory_analysis"
+)
+
+type Manual struct {
+	ID        uint          `gorm:"primarykey" json:"id"`
+	Type      ReferenceType `gorm:"not null;index" json:"type"`
+	Value     string        `gorm:"not null" json:"value"` // всегда строка, но парсится по ValueType
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
+}
+
+//internal/domain/entities/organization.go
+
+package entities
+
+import "time"
+
+// Модели данных
+type Organization struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Title string `gorm:"not null" json:"title" example:"Med_Clinic"`
+
+	ManagerID uint    `gorm:"not null;index" json:"-"`
+	Manager   Manager `gorm:"foreignKey:ManagerID" json:"manager"`
+
+	PatientGroups []PatientGroup `gorm:"foreignKey:OrganizationID" json:"patient_groups"`
+	Doctor        []Doctor       `gorm:"many2many:doctor_organizations" json:"-"`
+}
+
+// Manager представляет информацию о мэнэджере организации
+type Manager struct {
+	ID uint `gorm:"primarykey" json:"id"`
+
+	FullName string `gorm:"not null" json:"full_name" example:"Иванов Иван Иванович"`
+	Phone    string `gorm:"unique;not null" json:"phone" example:"+79991234567"`
+}
+
+//internal/domain/entities/patient.go
+
+package entities
+
+import (
+	"time"
+)
+
+type Patient struct {
+	ID                uint      `gorm:"primarykey" json:"id" example:"1"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	FullName          string    `gorm:"not null" json:"full_name" example:"Иванов Иван Иванович"`
+	BirthDate         time.Time `gorm:"not null" json:"birth_date" example:"1980-05-15T00:00:00Z"`
+	IsMale            bool      `gorm:"not null" json:"is_male" example:"true"`
+	Position          string    `gorm:"not null" json:"position" example:"Прогер"`
+	Division          string    `gorm:"not null" json:"division" example:"Прогер"`
+	ExaminationTypeID uint      `gorm:"not null" json:"examination_type_id"`
+	ExaminationViewID uint      `gorm:"not null" json:"examination_view_id"`
+	PhotoURL1         *string   `json:"photo_url1,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+	PhotoURL2         *string   `json:"photo_url2,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+
+	PatientGroupID uint `gorm:"not null;index" json:"patient_group_id"`
+
+	HarmPointID uint       `gorm:"not null;index" json:"harm_point_id"`
+	HarmPoint   *HarmPoint `gorm:"foreignKey:HarmPointID" json:"harm_point,omitempty"`
+
+	PersonalInfoID uint          `gorm:"not null;index" json:"personal_info_id"`
+	PersonalInfo   *PersonalInfo `gorm:"foreignKey:PersonalInfoID" json:"personal_info,omitempty"`
+
+	ContactInfoID uint         `gorm:"not null;index" json:"contact_info_id"`
+	ContactInfo   *ContactInfo `gorm:"foreignKey:ContactInfoID" json:"contact_info,omitempty"`
+
+	FlgID *uint `gorm:"index" json:"flg_id"`
+	Flg   *Flg  `gorm:"foreignKey:FlgID" json:"flg,omitempty"`
+
+	AnalysisOrderID uint           `gorm:"not null;index" json:"analysis_order_id"`
+	AnalysisOrder   *AnalysisOrder `gorm:"foreignKey:AnalysisOrderID" json:"analysis_order,omitempty"`
+
+	Statistics *PatientStatistics `gorm:"foreignKey:PatientID" json:"statistics,omitempty"`
+
+	Vaccines           []Vaccine           `gorm:"foreignKey:PatientID" json:"vaccines,omitempty"`
+	VaccineRefusals    []VaccineRefusal    `gorm:"foreignKey:PatientID" json:"vaccine_refusals,omitempty"`
+	VaccineWithdrawals []VaccineWithdrawal `gorm:"foreignKey:PatientID" json:"vaccine_withdrawals,omitempty"`
+	Titers             []Titr              `gorm:"foreignKey:PatientID" json:"titers,omitempty"`
+	Receptions         []Reception         `gorm:"foreignKey:PatientID" json:"receptions,omitempty"`
+
+	Specializations []Specialization `gorm:"many2many:patients_specializations;" json:"specializations,omitempty"`
+}
+
+// ContactInfo представляет контактную информацию пациента
+type ContactInfo struct {
+	ID        uint      `gorm:"primarykey;autoIncrement" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Address string `json:"address"`
+}
+
+// PersonalInfo представляет персональную информацию
+type PersonalInfo struct {
+	ID        uint      `gorm:"primarykey;autoIncrement" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	DocNumber string `json:"doc_number" example:"4510 123456" rus:"Номер документа"`
+	DocSeries string `json:"doc_series" example:"4510 123456" rus:"Серия документа"`
+	SNILS     string `json:"snils" example:"123-456-789 00" rus:"СНИЛС"`
+	OMS       string `json:"oms" example:"1234567890123456" rus:"Полис ОМС"`
+
+	DocumentTypeID uint `gorm:"not null;index" json:"document_type_id" example:"1"`
+}
+
+type PatientStatistics struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	PatientID              uint  `gorm:"not null;uniqueIndex" json:"-"`
+	TotalReceptions        int64 `gorm:"not null;default:0" json:"total_receptions"`
+	CompletedReceptions    int64 `gorm:"not null;default:0" json:"completed_receptions"`
+	TotalAnalysisOrders    int64 `gorm:"not null;default:0" json:"total_analysis_orders"`
+	CompletedAnalysisItems int64 `gorm:"not null;default:0" json:"completed_analysis_items"`
+}
+
+// internal/domain/entities/patient_group.go
+
+package entities
+
+import "time"
+
+type PatientGroup struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Code string `gorm:"not null" json:"code" example:"94928490"`
+
+	OrganizationID uint          `gorm:"not null;index" json:"-"`
+	Organization   *Organization `gorm:"foreignKey:OrganizationID" json:"Organization"`
+
+	Patients []Patient `gorm:"foreignKey:PatientGroupID" json:"patients,omitempty"`
+}
+
+// internal/domain/entities/reception.go
+
+package entities
+
+import (
+	"encoding/json"
+	"time"
+)
+
+// Reception заключения врачей
+type Reception struct {
+	ID        uint      `gorm:"primarykey" json:"id" example:"1"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	IsCompleted bool `gorm:"default:false" json:"is_completed"`
+
+	PatientID uint     `gorm:"not null;index" json:"patient_id" example:"1"`
+	Patient   *Patient `gorm:"foreignKey:PatientID" json:"-"`
+
+	// Связь со специализацией
+	SpecializationID uint            `gorm:"not null;index" json:"specialization_id"`
+	Specialization   *Specialization `gorm:"foreignKey:SpecializationID" json:"specialization"`
+
+	TemplateID uint              `gorm:"not null;index"`
+	Template   ReceptionTemplate `gorm:"foreignKey:TemplateID"`
+	Data       json.RawMessage   `gorm:"type:jsonb"`
+}
+
+// internal/domain/entities/reception_template.go
+
+package entities
+
+import "encoding/json"
+
+type ReceptionTemplate struct {
+	ID     uint            `gorm:"primarykey"`
+    Code   string          `gorm:"unique;not null"`
+    Fields json.RawMessage `gorm:"type:jsonb"`
+
+    SpecializationID uint            `gorm:"not null;index" json:"specialization_id"`
+    Specialization   *Specialization `gorm:"foreignKey:SpecializationID" json:"specialization"`
+
+    HarmPoints []HarmPoint `gorm:"many2many:harm_point_reception_templates;"`
+}
+
+
+type CustomField struct {
+    Name     string      `json:"name"`
+    Type     string      `json:"type"`
+    Required  bool       `json:"required"`
+    Description string `json:"description"`
+    Format string `json:"format,omitempty"`
+    MinLenght *int `json:"min_length,omitempty"`
+    MaxLenght *int `json:"max_length,omitempty"`
+    MinValue *int `json:"min_value,omitempty"`
+    MaxValue *int `json:"max_value,omitempty"`
+    MinItems *int `json:"min_items,omitempty"`
+    MaxItems *int `json:"max_items,omitempty"`
+    Example interface{} `json:"example,omitempty"`
+    DefaultValue interface{} `json:"default_value,omitempty"`
+    Value        interface{} `json:"value"`
+    KeyFormat    string      `json:"key_format,omitempty"`
+    ValueFormat  string      `json:"value_format,omitempty"`
+}
+
+// internal/domain/entities/specialization.go
+
+package entities
+
+type Specialization struct {
+	ID    uint   `gorm:"primarykey" json:"id"`
+	Title string `gorm:"unique;not null" json:"title" example:"Терапевт"`
+
+	Doctor  []Doctor  `gorm:"many2many:doctor_specializations" json:"-"`
+	Patient []Patient `gorm:"many2many:patients_specializations; default:null;" json:"-"`
+}
+
+// internal/domain/entities/vaccine.go
+
+package entities
+
+import "time"
+
+type Vaccine struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	Date      time.Time `json:"date"`
+	TitleID   uint      `gorm:"not null" json:"title_id,omitempty"`
+	PatientID uint      `gorm:"index"`
+
+	ResultID            uint `json:"result"`
+	MedicationID        uint `json:"medication_id,omitempty"`
+	DoseID              uint `json:"dose_id,omitempty"`
+	NumberID            uint `json:"number_id,omitempty"`
+	CertificateNumberID uint `json:"certificate_number_id,omitempty"`
+	BodyPartID          uint `json:"body_part_id,omitempty"`
+	MethodID            uint `json:"method_id,omitempty"`
+	PlaceID             uint `json:"place_id,omitempty"`
+
+	PhotoURL *string `json:"photo_url,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+}
+
+type VaccineRefusal struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	Date      time.Time `json:"date"`
+	TitleID   uint      `gorm:"not null" json:"title_id"`
+	PatientID uint      `gorm:"index"`
+
+	PhotoURL *string `json:"photo_url,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+}
+
+type VaccineWithdrawal struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	Date      time.Time `json:"date"`
+	TitleID   uint      `gorm:"not null" json:"title_id"`
+	PatientID uint      `gorm:"index"`
+	Num       int       `json:"med_withdrawl_num"`
+
+	PhotoURL *string `json:"photo_url,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+}
+
+type Titr struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"-"`
+	Date      time.Time `json:"date"`
+	TitleID   uint      `gorm:"not null" json:"title_id"`
+	PatientID uint      `gorm:"index"`
+	Amount    string    `json:"titer_amount"`
+
+	PhotoURL *string `json:"photo_url,omitempty" example:"https://my-bucket.s3.amazonaws.com/flg/123/photo.jpg"`
+}

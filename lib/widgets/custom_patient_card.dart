@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-class PatientCard extends StatefulWidget {
+/// Карточка одного пациента внутри списка группы.
+/// Адаптирована для экрана PatientsListScreen.
+class CustomPatientCard extends StatefulWidget {
   final String fullName;
   final String position;
   final String workplace;
@@ -14,7 +16,7 @@ class PatientCard extends StatefulWidget {
   final VoidCallback onExamine;
   final List<Map<String, dynamic>> specialists;
 
-  const PatientCard({
+  const CustomPatientCard({
     super.key,
     required this.fullName,
     required this.position,
@@ -31,10 +33,10 @@ class PatientCard extends StatefulWidget {
   });
 
   @override
-  State<PatientCard> createState() => _PatientCardState();
+  State<CustomPatientCard> createState() => _CustomPatientCardState();
 }
 
-class _PatientCardState extends State<PatientCard> {
+class _CustomPatientCardState extends State<CustomPatientCard> {
   final GlobalKey _specialistsButtonKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   bool _showSpecialistsPanel = false;
@@ -48,7 +50,8 @@ class _PatientCardState extends State<PatientCard> {
   }
 
   void _showOverlay() {
-    final renderBox = _specialistsButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+    _specialistsButtonKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final offset = renderBox.localToGlobal(Offset.zero);
@@ -57,13 +60,13 @@ class _PatientCardState extends State<PatientCard> {
     _overlayEntry = OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: _removeOverlay, // закрываем панель при клике вне
+        onTap: _removeOverlay,
         child: Stack(
           children: [
             Positioned(
               left: offset.dx,
               top: offset.dy + size.height,
-              width: 450,
+              width: 400,
               child: Material(
                 elevation: 6,
                 borderRadius: BorderRadius.circular(8),
@@ -75,30 +78,35 @@ class _PatientCardState extends State<PatientCard> {
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: widget.specialists.map(
+                    children: widget.specialists
+                        .map(
                           (s) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 3.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Text(
                                 s["title"],
                                 style: const TextStyle(fontSize: 12),
-                                softWrap: true,
                               ),
                             ),
                             Text(
                               s["status"] ? "Пройдено" : "Не пройдено",
                               style: TextStyle(
-                                color: s["status"] ? Colors.green : Colors.red,
+                                color: s["status"]
+                                    ? Colors.green
+                                    : Colors.red,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ).toList(),
+                    )
+                        .toList(),
                   ),
                 ),
               ),
@@ -134,7 +142,7 @@ class _PatientCardState extends State<PatientCard> {
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.grey,
               tabs: [
-                Tab(text: "Общая информация"),
+                Tab(text: "Общая инфо"),
                 Tab(text: "Прививки"),
                 Tab(text: "ФЛГ"),
                 Tab(text: "Согласие"),
@@ -144,10 +152,10 @@ class _PatientCardState extends State<PatientCard> {
               height: 270,
               child: TabBarView(
                 children: [
-                  _buildTabContent(showVaccinationButton: false, contentText: "Основная информация"),
-                  _buildTabContent(showVaccinationButton: true, contentText: "Прививки"),
-                  _buildTabContent(showVaccinationButton: false, contentText: "ФЛГ"),
-                  _buildTabContent(showVaccinationButton: false, contentText: "Согласие"),
+                  _buildTabContent(showVaccinationButton: false, title: "Общая информация"),
+                  _buildTabContent(showVaccinationButton: true, title: "Прививки пациента"),
+                  _buildTabContent(showVaccinationButton: false, title: "Флюорография"),
+                  _buildTabContent(showVaccinationButton: false, title: "Информированное согласие"),
                 ],
               ),
             ),
@@ -178,11 +186,11 @@ class _PatientCardState extends State<PatientCard> {
     );
   }
 
-  Widget _buildTabContent({bool showVaccinationButton = false, String? contentText}) {
+  Widget _buildTabContent({required String title, bool showVaccinationButton = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Левая колонка: шапка с информацией
+        // Левая панель: краткая инфо о пациенте
         Container(
           width: 220,
           padding: const EdgeInsets.all(12),
@@ -191,23 +199,31 @@ class _PatientCardState extends State<PatientCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.fullName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                   softWrap: true),
-              const SizedBox(height: 2),
-              Text(widget.position, style: const TextStyle(fontSize: 14), softWrap: true),
-              const SizedBox(height: 2),
-              Text(widget.workplace, style: const TextStyle(fontSize: 12, color: Colors.grey), softWrap: true),
               const SizedBox(height: 4),
-              Text("Дата рождения: ${widget.birthDate}", style: const TextStyle(fontSize: 12)),
-              Text("Возраст: ${widget.age}", style: const TextStyle(fontSize: 12)),
+              Text(widget.position,
+                  style: const TextStyle(fontSize: 14), softWrap: true),
+              const SizedBox(height: 4),
+              Text(widget.workplace,
+                  style:
+                  const TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 6),
+              Text("Дата рождения: ${widget.birthDate}",
+                  style: const TextStyle(fontSize: 12)),
+              Text("Возраст: ${widget.age}",
+                  style: const TextStyle(fontSize: 12)),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 key: _specialistsButtonKey,
                 onPressed: _toggleSpecialistsPanel,
                 icon: const Icon(Icons.person, size: 18),
-                label: Text("Специалисты ${widget.specialistsDone} из ${widget.specialistsTotal}"),
+                label: Text(
+                    "Специалисты ${widget.specialistsDone}/${widget.specialistsTotal}"),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   textStyle: const TextStyle(fontSize: 12),
                 ),
               ),
@@ -215,45 +231,22 @@ class _PatientCardState extends State<PatientCard> {
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.science, size: 18),
-                label: Text("Анализы ${widget.testsDone} из ${widget.testsTotal}"),
+                label: Text(
+                    "Анализы ${widget.testsDone}/${widget.testsTotal}"),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   textStyle: const TextStyle(fontSize: 12),
                 ),
               ),
             ],
           ),
         ),
-
-        // Правая колонка: основной контент вкладки
+        // Правая часть: контент вкладки
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (showVaccinationButton)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        child: const Icon(Icons.add),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                Text(contentText ?? "Основной контент вкладки", style: const TextStyle(fontSize: 14)),
-              ],
-            ),
+            child: Text(title, style: const TextStyle(fontSize: 14)),
           ),
         ),
       ],

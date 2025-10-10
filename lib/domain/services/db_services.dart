@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '/data/models/manual.dart';
 
 class DBService {
   static final DBService _instance = DBService._internal();
@@ -91,4 +94,23 @@ class DBService {
     await db.delete('organizations'); // удаляем все записи
   }
 
+  static const String baseUrl = 'http://10.0.2.2:8081/api/v1/manuals/getAll'; // замените на ваш адрес
+
+  Future<List<Manual>> fetchManuals() async {
+    final response = await http.get(Uri.parse('http://10.0.2.2:8081/api/v1/manuals/getAll'));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      // здесь добавляем уточнение, что "data" — массив
+      final List<dynamic> data = jsonResponse['data'];
+
+      return data.map((item) => Manual.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load manuals');
+    }
+  }
+
 }
+
+
