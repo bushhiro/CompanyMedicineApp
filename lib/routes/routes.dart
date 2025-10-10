@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../presentation/screens/downloaded_lists_screen.dart';
 import '../presentation/screens/login_screen.dart';
-import '/presentation/home_screen.dart';
-import '/presentation/downloaded_lists_screen.dart';
+import '../presentation/screens/home_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';

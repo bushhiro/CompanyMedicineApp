@@ -13,7 +13,6 @@ class FilterResponse<T> {
     required this.hitsPerPage,
   });
 
-  /// fromJson требует функцию, которая умеет создавать объект T из Map<String, dynamic>
   factory FilterResponse.fromJson(
       Map<String, dynamic> json, T Function(Map<String, dynamic>) fromJsonT) {
     return FilterResponse<T>(

@@ -4,6 +4,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;             // опциональный подзаголовок
   final bool showBackButton;          // опциональная кнопка назад
+  final bool showDrawerButton;
   final VoidCallback? onBack;         // обработчик кнопки назад
   final bool showSearchField;         // показывать кнопку поиска и поле
   final Function(String)? onSearch;   // колбек при вводе текста
@@ -24,6 +25,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.onDownloadAll,
     this.showAddPatient = false,
     this.onAddPatient,
+    this.showDrawerButton =true
 
   });
 
@@ -41,15 +43,15 @@ class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      automaticallyImplyLeading: false, // убираем стандартный back
+      automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       elevation: 2,
       foregroundColor: Colors.black,
       titleSpacing: 0,
       title: Row(
         children: [
-          // Гамбургер
-          IconButton(
+          if (widget.showDrawerButton)
+            IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
               Scaffold.of(context).openDrawer();

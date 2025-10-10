@@ -2,15 +2,28 @@ import 'package:flutter/material.dart';
 
 class ActionButtons extends StatelessWidget {
   /// Колбэк для кнопки обновления
-  final VoidCallback reloadOrganizations;
+  final VoidCallback? reloadOrganizations;
+
+  /// Колбэк для кнопки "Открыть"
+  final VoidCallback? onOpen;
+
+  /// Колбэк для удаления конкретного элемента (опционально)
+  final VoidCallback? onDelete;
+
+  /// Колбэк для очистки всего списка (опционально)
+  final VoidCallback? onClear;
 
   /// Показать кнопку обновления
   final bool showRefresh;
 
-  final bool showDelete;
-
   /// Показать кнопку очистки
   final bool showClear;
+
+  /// Показать кнопку удаления
+  final bool showDelete;
+
+  /// Показать кнопку "Открыть"
+  final bool showOpen;
 
   /// Текст кнопки обновления
   final String refreshLabel;
@@ -18,25 +31,25 @@ class ActionButtons extends StatelessWidget {
   /// Текст кнопки очистки
   final String clearLabel;
 
-  /// Колбэк для удаления конкретного элемента (опционально)
-  final VoidCallback? onDelete;
-
   /// Текст кнопки удаления
   final String deleteLabel;
 
-  /// Колбэк для очистки всего списка (опционально)
-  final VoidCallback? onClear;
+  /// Текст кнопки "Открыть"
+  final String openLabel;
 
   const ActionButtons({
-    required this.reloadOrganizations,
-    this.showRefresh = true,
+     this.reloadOrganizations,
+    this.showRefresh = false,
     this.showClear = false,
     this.showDelete = false,
+    this.showOpen = false,
     this.refreshLabel = "Обновить",
     this.clearLabel = "Очистить",
-    this.onDelete,
     this.deleteLabel = "Удалить",
+    this.openLabel = "Открыть",
+    this.onDelete,
     this.onClear,
+    this.onOpen,
     super.key,
   });
 
@@ -46,8 +59,9 @@ class ActionButtons extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             if (showRefresh)
               ElevatedButton.icon(
@@ -55,21 +69,32 @@ class ActionButtons extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 label: Text(refreshLabel),
               ),
-            if (showRefresh && (showClear || showDelete)) const SizedBox(width: 8),
-            if (onDelete != null)
+            if (showOpen && onOpen != null)
+              ElevatedButton.icon(
+                onPressed: onOpen,
+                icon: const Icon(Icons.folder_open),
+                label: Text(openLabel),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                ),
+              ),
+            if (showDelete && onDelete != null)
               ElevatedButton.icon(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete),
                 label: Text(deleteLabel),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade700,
+                ),
               ),
-            if (onDelete != null && (showClear || showRefresh)) const SizedBox(width: 8),
             if (showClear && onClear != null)
               ElevatedButton.icon(
                 onPressed: onClear,
                 icon: const Icon(Icons.delete_forever),
                 label: Text(clearLabel),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                ),
               ),
           ],
         ),

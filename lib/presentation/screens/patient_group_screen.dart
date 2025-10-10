@@ -42,35 +42,38 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<PatientGroupShortResponse>>(
-      future: _futureGroups,
-      builder: (context, snapshot) {
-        final groups = snapshot.data ?? [];
-
-        return Scaffold(
-          appBar: CustomAppBar(
-            title: "Списки на прохождение",
-            subtitle: "Всего списков: ${groups.length}",
-            showBackButton: true,
-            showDownloadAll: true,
-            onBack: () => Navigator.pop(context),
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: "Списки на прохождение",
+        subtitle: "Организация: ${widget.organizationName}",
+        showBackButton: true,
+        showDrawerButton: false,
+      ),
+      body: Column(
+        children: [
+          ActionButtons(
+            reloadOrganizations: _loadGroups,
+            showRefresh: true,
+            showClear: false,
+            refreshLabel: "Обновить списки",
           ),
-          body: Column(
-            children: [
-              ActionButtons(
-                reloadOrganizations: _loadGroups,
-                showRefresh: true,
-                showClear: false,
-                refreshLabel: "Обновить списки",
-              ),
-              Expanded(
-                child: snapshot.connectionState == ConnectionState.waiting
-                    ? const Center(child: CircularProgressIndicator())
-                    : snapshot.hasError
-                    ? Center(child: Text("Ошибка: ${snapshot.error}"))
-                    : groups.isEmpty
-                    ? const Center(child: Text("Нет списков"))
-                    : ListView.builder(
+          Expanded(
+            child: FutureBuilder<List<PatientGroupShortResponse>>(
+              future: _futureGroups,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text("Ошибка: ${snapshot.error}"));
+                }
+
+                final groups = snapshot.data ?? [];
+                if (groups.isEmpty) {
+                  return const Center(child: Text("Нет списков"));
+                }
+
+                return ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: groups.length,
                   itemBuilder: (context, index) {
@@ -113,11 +116,13 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: ElevatedButton(
-                                onPressed: () {
+                              child: ActionButtons(
+                                showOpen: true,
+                                onOpen: () {
+                                  DownloadedGroupsService().addGroup(group); // добавляем глобально
+                                  print("ADDEEDD");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -128,12 +133,6 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                                     ),
                                   );
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  textStyle: const TextStyle(fontSize: 14),
-                                ),
-                                child: const Text("Открыть"),
                               ),
                             ),
                           ],
@@ -141,12 +140,13 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                       ),
                     );
                   },
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
+

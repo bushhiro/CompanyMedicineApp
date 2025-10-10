@@ -1,33 +1,51 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../data/models/patient_group.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/patient_group.dart';
 
-/// Реализация сервиса для получения групп пациентов
+/// Сервис для получения групп пациентов с авторизацией
 class PatientGroupImpl {
   final String baseUrl;
 
   PatientGroupImpl({required this.baseUrl});
 
+  /// Получаем токен, сохранённый при логине
+  Future<String> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token')?.trim();
+    if (token == null || token.isEmpty) {
+      throw Exception('JWT токен не найден. Авторизуйтесь заново.');
+    }
+    print("TOKEN IS $token");
+    return token;
+  }
+
   /// Получить группы пациентов по ID организации
-  Future<List<PatientGroupShortResponse>> getGroupsByOrganization(String orgId) async {
-    final url = Uri.parse('$baseUrl/groups/$orgId');
-    final response = await http.get(url);
+  Future<List<PatientGroupShortResponse>> getGroupsByOrganization(String organizationId) async {
+    final token = await _getToken();
+    final Uri url = Uri.parse('$baseUrl/groups/$organizationId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // используем сохранённый токен
+      },
+    );
 
     if (response.statusCode == 200) {
-      // Преобразуем в Map<String, dynamic>
-      final Map<String, dynamic> jsonData = Map<String, dynamic>.from(json.decode(response.body));
+      final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> hits = jsonData['data']['hits'] ?? [];
 
-      // Достаем список hits
-      final List<dynamic> hits = jsonData['data']['hits'] as List<dynamic>;
-
-      // Преобразуем каждый элемент в модель
-      final groups = hits
+      return hits
           .map((e) => PatientGroupShortResponse.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-
-      return groups;
+    } else if (response.statusCode == 401) {
+      throw Exception('Неавторизованный доступ. Токен недействителен или истек.');
     } else {
-      throw Exception('Ошибка при получении групп пациентов: ${response.statusCode}');
+      throw Exception(
+        'Ошибка при получении групп пациентов: ${response.statusCode}\n${response.body}',
+      );
     }
   }
 }

@@ -29,3 +29,21 @@ class PatientGroupShortResponse {
     };
   }
 }
+
+class DownloadedGroupsService {
+  static final DownloadedGroupsService _instance = DownloadedGroupsService._internal();
+  factory DownloadedGroupsService() => _instance;
+  DownloadedGroupsService._internal();
+
+  final List<PatientGroupShortResponse> _groups = [];
+
+  List<PatientGroupShortResponse> get groups => List.unmodifiable(_groups);
+
+  void addGroup(PatientGroupShortResponse group) {
+    if (!_groups.any((g) => g.id == group.id)) {
+      _groups.add(group);
+    }
+  }
+
+  void clear() => _groups.clear();
+}

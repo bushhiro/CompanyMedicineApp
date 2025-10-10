@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/doctor.dart';
 import '../../data/repositories/doctor_repository_impl.dart';
-import '../home_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,12 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final authResponse = await _repo.login(request);
 
+      final prefs = await SharedPreferences.getInstance();
+
       if (authResponse == null) {
         throw Exception("Пустой ответ");
       }
 
       final doctor = await _repo.getCurrentDoctor(authResponse.token);
 
+      print("TOKEN IS : ${authResponse.token}");
+      await prefs.setString('token', authResponse.token);
       if (!mounted) return;
 
       Navigator.pushReplacement(
