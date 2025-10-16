@@ -1,35 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../data/models/patient.dart';
 
 /// Карточка одного пациента внутри списка группы.
-/// Адаптирована для экрана PatientsListScreen.
+/// Отображает вкладки: Общая информация, Прививки, ФЛГ, Согласие.
 class CustomPatientCard extends StatefulWidget {
-  final String fullName;
-  final String position;
-  final String workplace;
-  final String birthDate;
-  final int age;
-  final int specialistsDone;
-  final int specialistsTotal;
-  final int testsDone;
-  final int testsTotal;
+  final PatientResponse patient;
   final VoidCallback onContact;
   final VoidCallback onExamine;
-  final List<Map<String, dynamic>> specialists;
 
   const CustomPatientCard({
     super.key,
-    required this.fullName,
-    required this.position,
-    required this.workplace,
-    required this.birthDate,
-    required this.age,
-    required this.specialistsDone,
-    required this.specialistsTotal,
-    required this.testsDone,
-    required this.testsTotal,
+    required this.patient,
     required this.onContact,
     required this.onExamine,
-    required this.specialists,
   });
 
   @override
@@ -37,98 +20,10 @@ class CustomPatientCard extends StatefulWidget {
 }
 
 class _CustomPatientCardState extends State<CustomPatientCard> {
-  final GlobalKey _specialistsButtonKey = GlobalKey();
-  OverlayEntry? _overlayEntry;
-  bool _showSpecialistsPanel = false;
-
-  void _toggleSpecialistsPanel() {
-    if (_showSpecialistsPanel) {
-      _removeOverlay();
-    } else {
-      _showOverlay();
-    }
-  }
-
-  void _showOverlay() {
-    final renderBox =
-    _specialistsButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    final offset = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _removeOverlay,
-        child: Stack(
-          children: [
-            Positioned(
-              left: offset.dx,
-              top: offset.dy + size.height,
-              width: 400,
-              child: Material(
-                elevation: 6,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: widget.specialists
-                        .map(
-                          (s) => Padding(
-                        padding:
-                        const EdgeInsets.symmetric(vertical: 3.0),
-                        child: Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                s["title"],
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            Text(
-                              s["status"] ? "Пройдено" : "Не пройдено",
-                              style: TextStyle(
-                                color: s["status"]
-                                    ? Colors.green
-                                    : Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                        .toList(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(_overlayEntry!);
-    _showSpecialistsPanel = true;
-  }
-
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    _showSpecialistsPanel = false;
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
+    final p = widget.patient;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -149,13 +44,13 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
               ],
             ),
             SizedBox(
-              height: 270,
+              height: 280,
               child: TabBarView(
                 children: [
-                  _buildTabContent(showVaccinationButton: false, title: "Общая информация"),
-                  _buildTabContent(showVaccinationButton: true, title: "Прививки пациента"),
-                  _buildTabContent(showVaccinationButton: false, title: "Флюорография"),
-                  _buildTabContent(showVaccinationButton: false, title: "Информированное согласие"),
+                  _buildGeneralInfoTab(p),
+                  _buildVaccinesTab(p),
+                  _buildFlgTab(p),
+                  _buildConsentTab(p),
                 ],
               ),
             ),
@@ -186,70 +81,109 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     );
   }
 
-  Widget _buildTabContent({required String title, bool showVaccinationButton = false}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  // ======== ВКЛАДКА: ОБЩАЯ ИНФОРМАЦИЯ ========
+  Widget _buildGeneralInfoTab(PatientResponse p) {
+    return ListView(
+      padding: const EdgeInsets.all(12),
       children: [
-        // Левая панель: краткая инфо о пациенте
-        Container(
-          width: 220,
-          padding: const EdgeInsets.all(12),
-          color: Colors.grey.shade100,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.fullName,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  softWrap: true),
-              const SizedBox(height: 4),
-              Text(widget.position,
-                  style: const TextStyle(fontSize: 14), softWrap: true),
-              const SizedBox(height: 4),
-              Text(widget.workplace,
-                  style:
-                  const TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 6),
-              Text("Дата рождения: ${widget.birthDate}",
-                  style: const TextStyle(fontSize: 12)),
-              Text("Возраст: ${widget.age}",
-                  style: const TextStyle(fontSize: 12)),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                key: _specialistsButtonKey,
-                onPressed: _toggleSpecialistsPanel,
-                icon: const Icon(Icons.person, size: 18),
-                label: Text(
-                    "Специалисты ${widget.specialistsDone}/${widget.specialistsTotal}"),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  textStyle: const TextStyle(fontSize: 12),
-                ),
-              ),
-              const SizedBox(height: 4),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.science, size: 18),
-                label: Text(
-                    "Анализы ${widget.testsDone}/${widget.testsTotal}"),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  textStyle: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
-          ),
+        _infoRow("ФИО", p.fullName),
+        _infoRow(
+          "Дата рождения",
+          "${p.birthDate.day.toString().padLeft(2, '0')}.${p.birthDate.month.toString().padLeft(2, '0')}.${p.birthDate.year}",
         ),
-        // Правая часть: контент вкладки
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: Text(title, style: const TextStyle(fontSize: 14)),
-          ),
-        ),
+        _infoRow("Возраст", "${p.age} лет"),
+        _infoRow("Пол", p.isMale ? "Мужской" : "Женский"),
+        _infoRow("Должность", p.position),
+        _infoRow("Подразделение", p.division),
+        const Divider(),
+        _infoRow("Телефон", p.contactInfo.phone),
+        _infoRow("Email", p.contactInfo.email),
+        _infoRow("Адрес", p.contactInfo.address),
       ],
+    );
+  }
+
+  // ======== ВКЛАДКА: ПРИВИВКИ ========
+  Widget _buildVaccinesTab(PatientResponse p) {
+    if (p.vaccines == null || p.vaccines!.isEmpty) {
+      return const Center(child: Text("Нет данных о прививках"));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: p.vaccines!.length,
+      itemBuilder: (context, index) {
+        final v = p.vaccines![index];
+        return ListTile(
+          leading: const Icon(Icons.vaccines, color: Colors.blue),
+          title: Text(v.title),
+          subtitle: Text(
+            "Дата: ${v.date.day.toString().padLeft(2, '0')}.${v.date.month.toString().padLeft(2, '0')}.${v.date.year}",
+          ),
+        );
+      },
+    );
+  }
+
+  // ======== ВКЛАДКА: ФЛГ ========
+  Widget _buildFlgTab(PatientResponse p) {
+    if (p.flg == null) {
+      return const Center(child: Text("Нет данных о ФЛГ"));
+    }
+
+    final flg = p.flg!;
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoRow("Номер", flg.number),
+          _infoRow("Результат", flg.result),
+          _infoRow("Организация", flg.organization),
+          _infoRow("Выполнено", flg.isCompleted ? "Да" : "Нет"),
+        ],
+      ),
+    );
+  }
+
+  // ======== ВКЛАДКА: СОГЛАСИЕ ========
+  Widget _buildConsentTab(PatientResponse p) {
+    return const Center(
+      child: Text(
+        "Информированное согласие пациента пока не загружено.",
+        style: TextStyle(fontSize: 13, color: Colors.grey),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  // ======== УТИЛИТА ДЛЯ ВЫВОДА ПОЛЕЙ ========
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13),
+              softWrap: true,
+              overflow: TextOverflow.visible,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

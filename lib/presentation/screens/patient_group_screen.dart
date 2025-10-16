@@ -128,7 +128,7 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                                     MaterialPageRoute(
                                       builder: (_) => PatientsListScreen(
                                         listTitle: group.code,
-                                        organizationName: group.organizationTitle,
+                                        organizationName: group.organizationTitle, groupId: group.id,
                                       ),
                                     ),
                                   );
