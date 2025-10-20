@@ -235,3 +235,68 @@ class SpecializationResponse {
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title};
 }
+
+class PatientRequest {
+  final String fullName;
+  final String birthDate; // ISO-8601
+  final bool isMale;
+  final String position;
+  final String division;
+  final int examinationTypeId;
+  final int examinationViewId;
+  final int harmPointId;
+
+  final String phone;
+  final String email;
+  final String address;
+
+  final String docNumber;
+  final String docSeries;
+  final String? snils;
+  final String oms;
+  final int? documentTypeId;
+
+  PatientRequest({
+    required this.fullName,
+    required this.birthDate,
+    required this.isMale,
+    required this.position,
+    required this.division,
+    required this.examinationTypeId,
+    required this.examinationViewId,
+    required this.harmPointId,
+    required this.phone,
+    required this.email,
+    required this.address,
+    required this.docNumber,
+    required this.docSeries,
+    this.snils,
+    required this.oms,
+    this.documentTypeId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "full_name": fullName,
+      "birth_date": birthDate,
+      "is_male": isMale,
+      "position": position,
+      "division": division,
+      "examination_type_id": examinationTypeId,
+      "examination_view_id": examinationViewId,
+      "harm_point_id": harmPointId,
+      "contact_info": {
+        "phone": phone,
+        "email": email,
+        "address": address,
+      },
+      "personal_info": {
+        "doc_number": docNumber,
+        "doc_series": docSeries,
+        "snils": snils,
+        "oms": oms,
+        "document_type_id": documentTypeId,
+      },
+    };
+  }
+}

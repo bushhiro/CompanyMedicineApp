@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;             // опциональный подзаголовок
-  final bool showBackButton;          // опциональная кнопка назад
   final bool showDrawerButton;
+  final bool showBackButton;          // опциональная кнопка назад
   final VoidCallback? onBack;         // обработчик кнопки назад
   final bool showSearchField;         // показывать кнопку поиска и поле
   final Function(String)? onSearch;   // колбек при вводе текста
@@ -25,8 +25,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.onDownloadAll,
     this.showAddPatient = false,
     this.onAddPatient,
-    this.showDrawerButton =true
-
+    this.showDrawerButton =true,
   });
 
   @override

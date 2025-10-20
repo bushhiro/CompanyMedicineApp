@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class ActionButtons extends StatelessWidget {
   /// Колбэк для кнопки обновления
@@ -7,10 +8,10 @@ class ActionButtons extends StatelessWidget {
   /// Колбэк для кнопки "Открыть"
   final VoidCallback? onOpen;
 
-  /// Колбэк для удаления конкретного элемента (опционально)
+  /// Колбэк для удаления конкретного элемента
   final VoidCallback? onDelete;
 
-  /// Колбэк для очистки всего списка (опционально)
+  /// Колбэк для очистки всего списка
   final VoidCallback? onClear;
 
   /// Показать кнопку обновления
@@ -25,20 +26,17 @@ class ActionButtons extends StatelessWidget {
   /// Показать кнопку "Открыть"
   final bool showOpen;
 
-  /// Текст кнопки обновления
+  final Size? buttonSize;
+
+
+  /// Текст кнопок
   final String refreshLabel;
-
-  /// Текст кнопки очистки
   final String clearLabel;
-
-  /// Текст кнопки удаления
   final String deleteLabel;
-
-  /// Текст кнопки "Открыть"
   final String openLabel;
 
   const ActionButtons({
-     this.reloadOrganizations,
+    this.reloadOrganizations,
     this.showRefresh = false,
     this.showClear = false,
     this.showDelete = false,
@@ -50,6 +48,7 @@ class ActionButtons extends StatelessWidget {
     this.onDelete,
     this.onClear,
     this.onOpen,
+    this.buttonSize,
     super.key,
   });
 
@@ -64,40 +63,66 @@ class ActionButtons extends StatelessWidget {
           runSpacing: 8,
           children: [
             if (showRefresh)
-              ElevatedButton.icon(
+              _buildButton(
                 onPressed: reloadOrganizations,
-                icon: const Icon(Icons.refresh),
-                label: Text(refreshLabel),
+                icon: null,
+                label: refreshLabel,
               ),
             if (showOpen && onOpen != null)
-              ElevatedButton.icon(
+              _buildButton(
                 onPressed: onOpen,
-                icon: const Icon(Icons.folder_open),
-                label: Text(openLabel),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                ),
+                label: openLabel,
               ),
             if (showDelete && onDelete != null)
-              ElevatedButton.icon(
+              _buildButton(
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete),
-                label: Text(deleteLabel),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade700,
-                ),
+                icon: Icons.delete,
+                label: deleteLabel,
               ),
             if (showClear && onClear != null)
-              ElevatedButton.icon(
+              _buildButton(
                 onPressed: onClear,
-                icon: const Icon(Icons.delete_forever),
-                label: Text(clearLabel),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                ),
+                icon: Icons.delete_forever,
+                label: clearLabel,
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Унифицированный стиль кнопок
+  Widget _buildButton({
+    required VoidCallback? onPressed,
+    IconData? icon,
+    required String label,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        fixedSize: buttonSize,
+        backgroundColor: AppColors.buttonColor,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 18),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        ],
       ),
     );
   }
