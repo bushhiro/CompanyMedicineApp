@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/patient.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/custom_drawer.dart';
 import '../../widgets/custom_patient_card.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -97,6 +98,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.primaryColor,
       appBar: CustomAppBar(
         title: "Список пациентов",
         subtitle: "Всего пациентов: ${_allPatients.length}",

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_app/presentation/screens/patient_group_screen.dart';
 
+import '../../theme/app_colors.dart';
 import '../../widgets/custom_organization_card.dart';
 import '/widgets/custom_app_bar.dart';
 import '/widgets/custom_drawer.dart';
@@ -73,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final organizations = snapshot.data ?? [];
 
         return Scaffold(
+          backgroundColor: AppColors.primaryColor,
           appBar: CustomAppBar(
             title: "Список организаций",
             subtitle: snapshot.connectionState == ConnectionState.done

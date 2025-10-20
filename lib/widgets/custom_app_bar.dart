@@ -46,8 +46,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: AppColors.primaryColor,
-      elevation: 2,
-      foregroundColor: Colors.black,
       titleSpacing: 0,
       title: Row(
         children: [

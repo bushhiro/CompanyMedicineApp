@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/repositories/patient_repository.dart';
+import '../theme/app_colors.dart';
 
 class AddPatientFormDialog extends StatefulWidget {
   final int groupId;
@@ -49,7 +50,9 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
         width: double.infinity,
         height: double.infinity,
         child: Scaffold(
+          backgroundColor: AppColors.primaryColor,
           appBar: AppBar(
+            backgroundColor: AppColors.primaryColor,
             title: const Text("Добавить пациента"),
             actions: [
               IconButton(
@@ -143,8 +146,15 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
                       keyboardType: TextInputType.emailAddress),
                   const SizedBox(height: 24),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,
+                    ),
                     onPressed: _submit,
-                    child: const Text("Добавить пациента"),
+                    child:
+                    const Text(
+                      "Добавить пациента",
+                      style: TextStyle(color: AppColors.secondaryTextColor),
+                    ),
                   ),
                 ],
               ),

@@ -28,6 +28,8 @@ class ActionButtons extends StatelessWidget {
 
   final Size? buttonSize;
 
+  final Alignment alignment;
+
 
   /// Текст кнопок
   final String refreshLabel;
@@ -49,13 +51,14 @@ class ActionButtons extends StatelessWidget {
     this.onClear,
     this.onOpen,
     this.buttonSize,
+    this.alignment = Alignment.centerRight,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: Alignment.centerRight,
+      alignment: alignment,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Wrap(

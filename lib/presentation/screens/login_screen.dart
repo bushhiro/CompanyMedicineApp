@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:work_app/widgets/action_buttons.dart';
 import '../../data/models/doctor.dart';
 import '../../data/repositories/doctor_repository_impl.dart';
+import '../../theme/app_colors.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -66,11 +68,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Авторизация")),
+      backgroundColor: AppColors.primaryColor,
+      appBar: AppBar(title: const Text("Авторизация"), backgroundColor: AppColors.primaryColor),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             TextField(
               controller: _phoneController,
@@ -88,14 +92,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 _error!,
                 style: const TextStyle(color: Colors.red),
               ),
-            ElevatedButton(
-              onPressed: _loading ? null : _login,
-              child: _loading
-                  ? const CircularProgressIndicator()
-                  : const Text("Войти"),
-            ),
+              const SizedBox(height: 24),
+              ActionButtons(
+                alignment: Alignment.center,
+                showOpen: true,
+                openLabel: "Войти",
+                onOpen: _loading ? null : _login,
+              ),
           ],
-        ),
+        )
       ),
     );
   }

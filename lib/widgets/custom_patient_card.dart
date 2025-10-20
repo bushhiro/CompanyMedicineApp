@@ -152,7 +152,10 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderColor, width: 2),
+      ),
       color: AppColors.primaryColor,
       elevation: 4,
       clipBehavior: Clip.antiAlias,

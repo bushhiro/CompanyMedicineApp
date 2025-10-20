@@ -46,6 +46,7 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.primaryColor,
       body: FutureBuilder<List<PatientGroupShortResponse>>(
         future: _futureGroups,
         builder: (context, snapshot) {
@@ -94,73 +95,79 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           clipBehavior: Clip.antiAlias,
-                          child: SizedBox(
-                            height: 150,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  // Текст слева
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .center,
-                                      // центр по вертикали
-                                      children: [
-                                        Text(
-                                            group.code,
-                                            style: const TextStyle(fontSize: 18,
-                                                fontWeight: FontWeight.bold),
-                                            softWrap: true,
-                                            // перенос на следующую строку
-                                            maxLines: 2
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "Дата создания: ${_formatDate(
-                                              group.createdAt)}",
-                                          style: const TextStyle(
-                                              fontSize: 14, color: AppColors.hintColor),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          "Организация: ${group
-                                              .organizationTitle}",
-                                          style: const TextStyle(
-                                              fontSize: 14, color: AppColors.hintColor),
-                                        ),
-                                      ],
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              border: Border.all(color: AppColors.borderColor, width: 2)
+                            ),
+                            child: SizedBox(
+                              height: 150,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Текст слева
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .center,
+                                        // центр по вертикали
+                                        children: [
+                                          Text(
+                                              group.code,
+                                              style: const TextStyle(fontSize: 18,
+                                                  fontWeight: FontWeight.bold),
+                                              softWrap: true,
+                                              // перенос на следующую строку
+                                              maxLines: 2
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "Дата создания: ${_formatDate(
+                                                group.createdAt)}",
+                                            style: const TextStyle(
+                                                fontSize: 14, color: AppColors.hintColor),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            "Организация: ${group
+                                                .organizationTitle}",
+                                            style: const TextStyle(
+                                                fontSize: 14, color: AppColors.hintColor),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 20),
-                                  // Кнопка справа
-                                  ActionButtons(
-                                    showOpen: true,
-                                    buttonSize: const Size(150, 60),
-                                    onOpen: () {
-                                      DownloadedGroupsService().addGroup(
-                                          group); // добавляем глобально
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              PatientsListScreen(
-                                                listTitle: group.code,
-                                                organizationName: group
-                                                    .organizationTitle,
-                                                groupId: group.id,
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
+                                    const SizedBox(width: 20),
+                                    // Кнопка справа
+                                    ActionButtons(
+                                      showOpen: true,
+                                      buttonSize: const Size(150, 60),
+                                      onOpen: () {
+                                        DownloadedGroupsService().addGroup(
+                                            group); // добавляем глобально
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                PatientsListScreen(
+                                                  listTitle: group.code,
+                                                  organizationName: group
+                                                      .organizationTitle,
+                                                  groupId: group.id,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
+                          )
                         );
                       },
                     );

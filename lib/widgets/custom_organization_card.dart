@@ -20,14 +20,20 @@ class OrganizationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double cardHeight = 200; // например
+    const double cardHeight = 200;
     const double innerRatio = 0.3;
 
     return SizedBox(
       height: cardHeight,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: AppColors.borderColor,
+            width: 2,
+          )
+        ),
         child: Column(
           children: [
             // Верхний блок (70%)
