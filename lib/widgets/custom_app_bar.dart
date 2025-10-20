@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;             // опциональный подзаголовок
@@ -43,7 +45,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.primaryColor,
       elevation: 2,
       foregroundColor: Colors.black,
       titleSpacing: 0,
@@ -84,17 +86,17 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 Text(
                   widget.title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppColors.titleColor,
                   ),
                 ),
                 if (widget.subtitle != null && widget.subtitle!.isNotEmpty)
                   Text(
                     widget.subtitle!,
                     style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+                      fontSize: 16,
+                      color: AppColors.hintColor,
                     ),
                   ),
               ],

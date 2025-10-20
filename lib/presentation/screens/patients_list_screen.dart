@@ -145,23 +145,23 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                 // Чекбоксы
                 Row(
                   children: [
-                    Column(
+                    Row(
                       children: [
-                        const Text("Показать завершенных", style: TextStyle(fontSize: 12)),
                         Checkbox(
                           value: _showCompleted,
                           onChanged: (v) => setState(() => _showCompleted = v ?? false),
                         ),
+                        const Text("Показать завершенных", style: TextStyle(fontSize: 14)),
                       ],
                     ),
                     const SizedBox(width: 8),
-                    Column(
+                    Row(
                       children: [
-                        const Text("Показать с долгами", style: TextStyle(fontSize: 12)),
                         Checkbox(
                           value: _showDebts,
                           onChanged: (v) => setState(() => _showDebts = v ?? false),
                         ),
+                        const Text("Показать с долгами", style: TextStyle(fontSize: 14)),
                       ],
                     ),
                   ],

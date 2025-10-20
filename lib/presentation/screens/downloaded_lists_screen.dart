@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/patient_group.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/action_buttons.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_drawer.dart';
 
@@ -30,27 +32,44 @@ class DownloadedListsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    group.code,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Дата создания: ${group.createdAt.day.toString().padLeft(2,'0')}.${group.createdAt.month.toString().padLeft(2,'0')}.${group.createdAt.year}",
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Организация: ${group.organizationTitle}",
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      debugPrint("Выгрузить ${group.code} в 1С");
-                    },
-                    icon: const Icon(Icons.upload, size: 18),
-                    label: const Text("Выгрузить в 1С"),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Левый текст
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              group.code,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryTextColor),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Дата создания: ${group.createdAt.day.toString().padLeft(2,'0')}.${group.createdAt.month.toString().padLeft(2,'0')}.${group.createdAt.year}",
+                              style: const TextStyle(fontSize: 14, color: AppColors.hintColor),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "Организация: ${group.organizationTitle}",
+                              style: const TextStyle(fontSize: 14, color: AppColors.hintColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Правая кнопка
+                      ActionButtons(
+                        showOpen: true,
+                        onOpen: () {
+                          debugPrint("Выгрузить ${group.code} в 1С");
+                        },
+                        openLabel: "Выгрузить в 1С",
+                        // Если нужно, можно задать buttonSize через кастомизацию ActionButtons
+                      ),
+                    ],
                   ),
                 ],
               ),

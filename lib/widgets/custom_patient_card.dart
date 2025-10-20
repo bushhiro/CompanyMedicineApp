@@ -4,6 +4,7 @@ import '../data/models/analysis.dart';
 import '../data/models/reception.dart';
 import '../theme/app_colors.dart';
 import '../ui/dialogs/add_flg_dialog.dart';
+import 'action_buttons.dart';
 
 class CustomPatientCard extends StatefulWidget {
   final PatientResponse patient;
@@ -29,6 +30,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: AppColors.primaryColor,
         title: const Text("Контактные данные пациента"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -42,9 +44,10 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Закрыть"),
+          ActionButtons(
+            showOpen: true,
+            onOpen: () => Navigator.pop(context),
+            openLabel: "Закрыть",
           ),
         ],
       ),
@@ -184,32 +187,21 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Контактные данные слева
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.25,
-                    child: ElevatedButton.icon(
-                      onPressed: _showContactDialog,
-                      icon: const Icon(Icons.contact_phone, size: 18),
-                      label: const Text("Контактные данные"),
-                      style: ElevatedButton.styleFrom(
-                        padding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                        textStyle: const TextStyle(fontSize: 13),
-                      ),
+                    child: ActionButtons(
+                      showOpen: true,
+                      openLabel: "Контактные данные",
+                      onOpen: _showContactDialog,
                     ),
                   ),
+
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.25,
-                    child: ElevatedButton.icon(
-                      onPressed: widget.onExamine,
-                      icon: const Icon(Icons.medical_information, size: 18),
-                      label: const Text("Осмотреть пациента"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        padding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                        textStyle: const TextStyle(fontSize: 13),
-                      ),
+                    child: ActionButtons(
+                      showOpen: true,
+                      openLabel: "Осмотреть пациента",
+                      onOpen: widget.onExamine,
                     ),
                   ),
                 ],
@@ -398,7 +390,6 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     ],
                   )
                 else
-                // Если прививок нет, показываем кнопку по центру
                   Center(
                     child: SizedBox(
                       width: 120,

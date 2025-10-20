@@ -8,7 +8,9 @@ class AppColors {
   static const Color buttonColor = Color(0xFF0C1F4D);      // Цвет кнопок
   static const Color primaryTextColor = Colors.black;
   static const Color primaryColor = Color(0xffffffff);      // Основной цвет текста
-  static const Color hintColor = Color(0xFF9E9E9E);        // Подсказки, вторичный текст
+  static const Color hintColor = Color(0xFF9E9E9E);
+  static const Color titleColor = Color(0xFF0C1F4D);
+  // Подсказки, вторичный текст
 
   // Дополнительные оттенки
   static const Color borderColor = Color(0xFFE0E0E0);      // Светло-серый для рамок
