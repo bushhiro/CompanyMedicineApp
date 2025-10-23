@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_colors.dart';
+
 class AddFlgDialog extends StatefulWidget {
   const AddFlgDialog({super.key});
 
@@ -26,6 +28,7 @@ class _AddFlgDialogState extends State<AddFlgDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: AppColors.primaryColor,
       insetPadding: const EdgeInsets.all(24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -38,7 +41,7 @@ class _AddFlgDialogState extends State<AddFlgDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                "Добавить ФЛГ",
+                "Добавить флюрографию",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
@@ -115,7 +118,10 @@ class _AddFlgDialogState extends State<AddFlgDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Отмена"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,
+                    ),
+                    child: const Text("Отмена", style: TextStyle(color: AppColors.secondaryTextColor)),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
@@ -129,7 +135,10 @@ class _AddFlgDialogState extends State<AddFlgDialog> {
                         });
                       }
                     },
-                    child: const Text("Сохранить"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,
+                    ),
+                    child: const Text("Сохранить", style: TextStyle(color: AppColors.secondaryTextColor)),
                   ),
                 ],
               )

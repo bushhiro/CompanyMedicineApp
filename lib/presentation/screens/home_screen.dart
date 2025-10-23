@@ -1,15 +1,14 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:work_app/presentation/screens/patient_group_screen.dart';
-
+import '../../../data/models/patient_group.dart'; // здесь твоя модель Organization
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_organization_card.dart';
 import '/widgets/custom_app_bar.dart';
 import '/widgets/custom_drawer.dart';
 import '../../widgets/action_buttons.dart';
+import '../screens/patient_group_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String doctorName;
@@ -21,7 +20,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<Map<String, dynamic>>> _futureOrganizations;
+  late Future<List<Organization>> _futureOrganizations;
+  List<Organization> _allOrganizations = [];
+  String _searchQuery = "";
 
   @override
   void initState() {
@@ -29,12 +30,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _futureOrganizations = _fetchOrganizations();
   }
 
-  Future<List<Map<String, dynamic>>> _fetchOrganizations() async {
+  Future<List<Organization>> _fetchOrganizations() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) throw Exception('JWT токен не найден');
 
-    final url = Uri.parse('http://10.0.2.2:8081/api/v1/organization/getAll');
+    final url = Uri.parse('http://192.168.29.112:65322/swagger/index.html#/');
     final response = await http.get(
       url,
       headers: {
@@ -46,12 +47,26 @@ class _HomeScreenState extends State<HomeScreen> {
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body) as Map<String, dynamic>;
       final hits = jsonData['data']['hits'] as List<dynamic>;
-      return hits.map((e) => Map<String, dynamic>.from(e)).toList();
+      final orgs = hits.map((e) => Organization.fromJson(e)).toList();
+
+      setState(() {
+        _allOrganizations = orgs;
+      });
+
+      return _allOrganizations;
     } else if (response.statusCode == 401) {
       throw Exception('Неавторизованный доступ. Проверьте токен');
     } else {
       throw Exception('Ошибка сервера: ${response.statusCode}\n${response.body}');
     }
+  }
+
+  List<Organization> _applyFilters() {
+    if (_searchQuery.isEmpty) return _allOrganizations;
+
+    return _allOrganizations.where((org) {
+      return org.title.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
   }
 
   void _reloadOrganizations() {
@@ -62,62 +77,60 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearOrganizations() {
     setState(() {
-      _futureOrganizations = Future.value([]);
+      _allOrganizations = [];
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _futureOrganizations,
-      builder: (context, snapshot) {
-        final organizations = snapshot.data ?? [];
+    final filteredOrganizations = _applyFilters();
 
-        return Scaffold(
-          backgroundColor: AppColors.primaryColor,
-          appBar: CustomAppBar(
-            title: "Список организаций",
-            subtitle: snapshot.connectionState == ConnectionState.done
-                ? "Всего организаций: ${organizations.length}"
-                : "Загрузка...",
-            showSearchField: true,
-            showDrawerButton: true,
-            onSearch: (query) => debugPrint("Поиск: $query"),
+    return Scaffold(
+      backgroundColor: AppColors.primaryColor,
+      appBar: CustomAppBar(
+        title: "Список организаций",
+        subtitle: "Всего организаций: ${filteredOrganizations.length}",
+        showDrawerButton: true,
+        showSearchField: true,
+        onSearch: (query) => setState(() {
+          _searchQuery = query;
+        }),
+      ),
+      drawer: const CustomDrawer(),
+      body: Column(
+        children: [
+          ActionButtons(
+            reloadOrganizations: _reloadOrganizations,
+            showRefresh: true,
+            refreshLabel: "Обновить список",
+            onClear: _clearOrganizations,
           ),
-          drawer: const CustomDrawer(),
-          body: Column(
-            children: [
-              // Встраиваем ActionButtons сразу под AppBar
-              ActionButtons(
-                reloadOrganizations: _reloadOrganizations,
-                showRefresh: true,
-                refreshLabel: "Обновить список",
-                onClear: _clearOrganizations,
-              ),
+          Expanded(
+            child: FutureBuilder<List<Organization>>(
+              future: _futureOrganizations,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text("Ошибка: ${snapshot.error}"));
+                }
 
-              Expanded(
-                child: snapshot.connectionState == ConnectionState.waiting
-                    ? const Center(child: CircularProgressIndicator())
-                    : snapshot.hasError
-                    ? Center(child: Text("Ошибка: ${snapshot.error}"))
-                    : organizations.isEmpty
-                    ? const Center(child: Text("Нет организаций"))
-                    : ListView.builder(
+                if (filteredOrganizations.isEmpty) {
+                  return const Center(child: Text("Организации не найдены"));
+                }
+
+                return ListView.builder(
                   padding: const EdgeInsets.all(8),
-                  itemCount: organizations.length,
+                  itemCount: filteredOrganizations.length,
                   itemBuilder: (context, index) {
-                    final org = organizations[index];
-                    final doctor = (org["manager"] != null &&
-                        org["manager"]["full_name"] != null)
-                        ? org["manager"]["full_name"] as String
-                        : "-";
-                    final phone = (org["manager"] != null &&
-                        org["manager"]["phone"] != null)
-                        ? org["manager"]["phone"] as String
-                        : "-";
+                    final org = filteredOrganizations[index];
+                    final doctor = org.managerName ?? "-";
+                    final phone = org.managerPhone ?? "-";
+
                     return OrganizationCard(
                       logo: Icons.local_hospital,
-                      name: org["title"] ?? "Без названия",
+                      name: org.title,
                       doctor: doctor,
                       phone: phone,
                       onOpen: () {
@@ -125,21 +138,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => PatientGroupsScreen(
-                              organizationName:
-                              org["title"] ?? "",
-                              organizationId: org["id"].toString(),
+                              organizationName: org.title,
+                              organizationId: org.id.toString(),
                             ),
                           ),
                         );
                       },
                     );
                   },
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

@@ -4,16 +4,16 @@ import '../data/models/analysis.dart';
 import '../data/models/reception.dart';
 import '../theme/app_colors.dart';
 import '../ui/dialogs/add_flg_dialog.dart';
+import '../ui/dialogs/add_vaccination_dialog.dart';
 import 'action_buttons.dart';
+
 
 class CustomPatientCard extends StatefulWidget {
   final PatientResponse patient;
-  final VoidCallback onExamine;
 
   const CustomPatientCard({
     super.key,
     required this.patient,
-    required this.onExamine,
   });
 
   @override
@@ -51,6 +51,13 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showExamineDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => const AddVaccinationDialog(),
     );
   }
 
@@ -179,9 +186,9 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
               child: TabBarView(
                 children: [
                   _buildGeneralInfoTab(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
-                  _buildVaccinesTab(p),
-                  _buildFlgTab(p),
-                  _buildConsentTab(),
+                  _buildVaccinesTab(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
+                  _buildFlgTab(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
+                  _buildConsentTab(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
                 ],
               ),
             ),
@@ -204,7 +211,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     child: ActionButtons(
                       showOpen: true,
                       openLabel: "Осмотреть пациента",
-                      onOpen: widget.onExamine,
+                      onOpen: () => Navigator.pop(context),
                     ),
                   ),
                 ],
@@ -265,10 +272,10 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
             label: Text("Анализы $testsDone/$testsTotal",
                 style: TextStyle(color: AppColors.primaryTextColor)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              minimumSize: const Size(double.infinity, 32),
-              textStyle: const TextStyle(fontSize: 12),
-              iconColor: AppColors.primaryTextColor
+                backgroundColor: AppColors.primaryColor,
+                minimumSize: const Size(double.infinity, 32),
+                textStyle: const TextStyle(fontSize: 12),
+                iconColor: AppColors.primaryTextColor
             ),
           ),
         ],
@@ -276,7 +283,6 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     );
   }
 
-  /// Общая информация (справа)
   Widget _buildGeneralInfoTab(PatientResponse p, int specialistsDone, int specialistsTotal,
       int testsDone, int testsTotal) {
     return Row(
@@ -315,14 +321,15 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   }
 
   /// Прививки
-  Widget _buildVaccinesTab(PatientResponse p) {
+  Widget _buildVaccinesTab(PatientResponse p, int specialistsDone, int specialistsTotal,
+      int testsDone, int testsTotal) {
     final vaccines = p.vaccines ?? [];
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Левая панель с общей информацией
-        _buildLeftInfo(p, 0, 0, 0, 0),
+        _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
         // Правая часть вкладки Прививки
         Expanded(
           child: Padding(
@@ -358,37 +365,35 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                       const SizedBox(width: 16),
                       // Кнопка "Добавить прививку"
                       Padding(
-                          padding: const EdgeInsetsGeometry.only(top: 55),
-                          child: SizedBox(
-                            width: 120,
-                            height: 120,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // TODO: обработчик добавления прививки
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.all(8),
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                side: const BorderSide(color: Colors.grey, width: 1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.edit, size: 40, color: Colors.blue),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    "Добавить прививку",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 14, color: Colors.black),
-                                  ),
-                                ],
+                        padding: const EdgeInsets.only(top: 55),
+                        child: SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: ElevatedButton(
+                            onPressed: _showExamineDialog, // вызываем метод
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.all(8),
+                              backgroundColor: AppColors.primaryColor,
+                              foregroundColor: AppColors.hintColor,
+                              side: const BorderSide(color: AppColors.borderColor, width: 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.edit, size: 30, color: AppColors.extraButtonColor),
+                                SizedBox(height: 6),
+                                Text(
+                                  "Добавить прививку",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 14, color: AppColors.primaryTextColor),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
                       ),
                     ],
                   )
@@ -398,14 +403,12 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                       width: 120,
                       height: 120,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: обработчик добавления прививки
-                        },
+                        onPressed: _showExamineDialog, // вызываем метод
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.all(8),
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          side: const BorderSide(color: Colors.grey, width: 1),
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: AppColors.hintColor,
+                          side: const BorderSide(color: AppColors.borderColor, width: 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -413,12 +416,12 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.edit, size: 40, color: Colors.black),
+                            Icon(Icons.edit, size: 30, color: AppColors.extraButtonColor),
                             SizedBox(height: 6),
                             Text(
                               "Добавить прививку",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: Colors.black),
+                              style: TextStyle(fontSize: 14, color: AppColors.primaryTextColor),
                             ),
                           ],
                         ),
@@ -434,7 +437,8 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   }
 
   /// ФЛГ
-  Widget _buildFlgTab(PatientResponse p) {
+  Widget _buildFlgTab(PatientResponse p, int specialistsDone, int specialistsTotal,
+      int testsDone, int testsTotal) {
     final flg = p.flg;
 
     return Row(
@@ -548,16 +552,56 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   }
 
   /// Согласие
-  Widget _buildConsentTab() {
+  Widget _buildConsentTab(PatientResponse p, int specialistsDone, int specialistsTotal,
+      int testsDone, int testsTotal) {
     return Row(
       children: [
-        _buildLeftInfo(widget.patient, 0, 0, 0, 0),
-        const Expanded(
-          child: Center(
-            child: Text(
-              "Информированное согласие пациента пока не загружено.",
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-              textAlign: TextAlign.center,
+          _buildLeftInfo(widget.patient, 0, 0, 0, 0),
+          const Padding(
+            padding: EdgeInsets.only(left: 20, right: 20, top: 20),
+            child: Center(
+              child: Text(
+                "Информированное согласие пациента пока не загружено.",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 120, // квадратная форма
+            height: 120,
+            child: ElevatedButton(
+              onPressed: () async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (context) => const AddFlgDialog(),
+                );
+
+                if (result != null) {
+                  print("Добавлено Соглашение: $result");
+                  // TODO: реализовать сохранение результата через API
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(8),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                side: const BorderSide(color: Colors.grey, width: 1), // тонкий серый бордер
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // слегка скруглённая
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.edit, size: 40, color: Colors.blue),
+                  SizedBox(height: 6),
+                  Text(
+                    "Добавить Соглашение",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+              ],
             ),
           ),
         ),

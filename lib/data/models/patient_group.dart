@@ -47,3 +47,23 @@ class DownloadedGroupsService {
 
   void clear() => _groups.clear();
 }
+
+
+class Organization {
+  final int id;
+  final String title;
+  final String? managerName;
+  final String? managerPhone;
+
+  Organization({required this.id, required this.title,this.managerName,
+    this.managerPhone,});
+
+  factory Organization.fromJson(Map<String, dynamic> json) {
+    return Organization(
+      id: json['id'] as int,
+      title: json['title'] as String,
+      managerName: json['manager'] != null ? json['manager']['full_name'] as String? : null,
+      managerPhone: json['manager'] != null ? json['manager']['phone'] as String? : null,
+    );
+  }
+}

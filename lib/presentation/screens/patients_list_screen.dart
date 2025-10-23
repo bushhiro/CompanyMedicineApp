@@ -198,7 +198,6 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                     final patient = patients[index];
                     return CustomPatientCard(
                       patient: patient,
-                      onExamine: () {},
                     );
                   },
                 );

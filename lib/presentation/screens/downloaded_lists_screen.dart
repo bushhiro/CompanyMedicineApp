@@ -13,6 +13,7 @@ class DownloadedListsScreen extends StatelessWidget {
     final downloadedLists = DownloadedGroupsService().groups;
 
     return Scaffold(
+      backgroundColor: AppColors.primaryColor,
       appBar: const CustomAppBar(
         title: "Скачанные списки",
         showSearchField: true,

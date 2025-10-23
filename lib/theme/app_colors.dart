@@ -14,6 +14,7 @@ class AppColors {
 
   // Дополнительные оттенки
   static const Color borderColor = Color(0xFFE0E0E0);      // Светло-серый для рамок
+  static const Color extraButtonColor = Color(0xFF2196F3);      // Голубой
   static const Color errorColor = Color(0xFFD32F2F);       // Ошибки
   static const Color successColor = Color(0xFF4CAF50);     // Успешные действия
   static const Color warningColor = Color(0xFFFFA000);     // Предупреждения
