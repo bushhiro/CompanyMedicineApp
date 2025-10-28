@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import '../../data/models/doctor.dart';
 
 class DoctorRepositoryImpl {
-  final String baseUrl = "http://10.0.2.2:8081/api/v1";
+  final String baseUrl = "http://192.168.29.112:65322/api/v1";
 
   Future<DoctorAuthResponse?> login(DoctorLoginRequest request) async {
-    final url = Uri.parse('$baseUrl/auth/login');
+    final url = Uri.parse('$baseUrl/login');
 
     final response = await http.post(
       url,

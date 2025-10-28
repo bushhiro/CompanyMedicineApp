@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = prefs.getString('token');
     if (token == null) throw Exception('JWT токен не найден');
 
-    final url = Uri.parse('http://192.168.29.112:65322/swagger/index.html#/');
+    final url = Uri.parse('http://192.168.29.112:65322/api/v1/organizations');
     final response = await http.get(
       url,
       headers: {
@@ -55,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return _allOrganizations;
     } else if (response.statusCode == 401) {
+      print('TOKEN IS: $token!!!!!!!!!!!');
       throw Exception('Неавторизованный доступ. Проверьте токен');
     } else {
       throw Exception('Ошибка сервера: ${response.statusCode}\n${response.body}');

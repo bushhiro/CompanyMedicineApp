@@ -27,7 +27,7 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
   @override
   void initState() {
     super.initState();
-    _service = PatientGroupImpl(baseUrl: 'http://10.0.2.2:8081/api/v1');
+    _service = PatientGroupImpl(baseUrl: 'http://192.168.29.112:65322/api/v1');
     _loadGroups();
   }
 

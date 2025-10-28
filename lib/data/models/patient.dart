@@ -13,8 +13,8 @@ class PatientResponse {
   final String division;
   final int patientGroupID;
 
-  final String? examinationType;
-  final String? examinationView;
+  final int? examinationType;
+  final int? examinationView;
 
   final HarmPointResponse harmPoint;
   final PersonalInfoResponse personalInfo;
@@ -52,15 +52,15 @@ class PatientResponse {
   factory PatientResponse.fromJson(Map<String, dynamic> json) {
     return PatientResponse(
       id: json['id'] as int,
-      fullName: json['full_name'] as String,
-      birthDate: DateTime.parse(json['birth_date'] as String),
+      fullName: json['full_name'].toString(),
+      birthDate: DateTime.parse(json['birth_date'].toString()),
       age: json['age'] as int,
-      isMale: json['is_male'] as bool,
-      position: json['position'] as String,
-      division: json['division'] as String,
+      isMale: json['is_male'] as bool? ?? false,
+      position: json['position'].toString(),
+      division: json['division'].toString(),
       patientGroupID: json['patient_group_id'] as int,
-      examinationType: json['examination_type'] as String?,
-      examinationView: json['examination_view'] as String?,
+      examinationType: json['examination_type'] as int,
+      examinationView: json['examination_view'] as int,
       harmPoint: HarmPointResponse.fromJson(json['harm_point']),
       personalInfo: PersonalInfoResponse.fromJson(json['personal_info']),
       contactInfo: ContactInfoResponse.fromJson(json['contact_info']),
@@ -119,7 +119,7 @@ class HarmPointResponse {
   HarmPointResponse({required this.id, required this.value});
 
   factory HarmPointResponse.fromJson(Map<String, dynamic> json) {
-    return HarmPointResponse(id: json['id'] as int, value: json['value'] as String);
+    return HarmPointResponse(id: json['id'] as int, value: json['value'].toString());
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'value': value};
@@ -131,7 +131,7 @@ class PersonalInfoResponse {
   final String docSeries;
   final String snils;
   final String oms;
-  final String? documentType;
+  final int? documentType;
 
   PersonalInfoResponse({
     required this.id,
@@ -145,11 +145,11 @@ class PersonalInfoResponse {
   factory PersonalInfoResponse.fromJson(Map<String, dynamic> json) {
     return PersonalInfoResponse(
       id: json['id'] as int,
-      docNumber: json['doc_number'] as String,
-      docSeries: json['doc_series'] as String,
-      snils: json['snils'] as String,
-      oms: json['oms'] as String,
-      documentType: json['document_type'] as String?,
+      docNumber: json['doc_number'].toString(),
+      docSeries: json['doc_series'].toString(),
+      snils: json['snils'].toString(),
+      oms: json['oms'].toString(),
+      documentType: json['document_type'] as int,
     );
   }
 
@@ -179,9 +179,9 @@ class ContactInfoResponse {
   factory ContactInfoResponse.fromJson(Map<String, dynamic> json) {
     return ContactInfoResponse(
       id: json['id'] as int,
-      phone: json['phone'] as String,
-      email: json['email'] as String,
-      address: json['address'] as String,
+      phone: json['phone'].toString(),
+      email: json['email'].toString(),
+      address: json['address'].toString(),
     );
   }
 
@@ -230,7 +230,7 @@ class SpecializationResponse {
   SpecializationResponse({required this.id, required this.title});
 
   factory SpecializationResponse.fromJson(Map<String, dynamic> json) {
-    return SpecializationResponse(id: json['id'] as int, title: json['title'] as String);
+    return SpecializationResponse(id: json['id'] as int, title: json['title'].toString());
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title};

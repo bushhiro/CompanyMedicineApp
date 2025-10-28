@@ -62,11 +62,12 @@ class AddPatientService {
       final token = prefs.getString('token');
       if (token == null) throw Exception("JWT токен не найден");
 
-      final url = Uri.parse('$baseUrl/patients/$groupId/create');
+      final url = Uri.parse('$baseUrl/patients');
 
       final Map<String, dynamic> body = {
         "full_name": fullName,
         "birth_date": birthDate.toUtc().toIso8601String(),
+        "group_id": groupId,
         "is_male": isMale,
         "position": position,
         "division": division,

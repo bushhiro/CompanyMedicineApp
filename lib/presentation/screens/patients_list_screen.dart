@@ -39,33 +39,59 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   }
 
   Future<List<PatientResponse>> _fetchPatients() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) throw Exception('JWT токен не найден.');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) throw Exception('JWT токен не найден.');
 
-    final url = Uri.parse('http://10.0.2.2:8081/api/v1/patients/${widget.groupId}');
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+      final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/patients');
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonData = json.decode(response.body);
-      final List<dynamic> patientsJson = jsonData['data'];
-      final patients = patientsJson
-          .map((item) => PatientResponse.fromJson(item as Map<String, dynamic>))
-          .toList();
+      // ОТЛАДОЧНЫЙ ВЫВОД ДО ПРОВЕРКИ СТАТУСА
+      print('=== RAW RESPONSE ===');
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
+      print('===================');
 
-      setState(() {
-        _allPatients = patients;
-      });
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        final List<dynamic> patientsJson = jsonData['data'];
 
-      return _allPatients;
-    } else {
-      throw Exception('Ошибка при получении пациентов: ${response.statusCode}\n${response.body}');
+        final patients = <PatientResponse>[];
+
+        for (var item in patientsJson) {
+          try {
+            print('Processing patient: ${item['id']}');
+            print('is_male: ${item['is_male']} (type: ${item['is_male']?.runtimeType})');
+
+            final patient = PatientResponse.fromJson(item as Map<String, dynamic>);
+            patients.add(patient);
+          } catch (e, stackTrace) {
+            print('ERROR processing patient ${item['id']}: $e');
+            print('Stack trace: $stackTrace');
+            print('Problematic data: $item');
+            rethrow;
+          }
+        }
+
+        setState(() {
+          _allPatients = patients;
+        });
+
+        return _allPatients;
+      } else {
+        throw Exception('Ошибка при получении пациентов: ${response.statusCode}\n${response.body}');
+      }
+    } catch (e, stackTrace) {
+      print('General error in _fetchPatients: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 

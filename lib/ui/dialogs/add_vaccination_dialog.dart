@@ -8,7 +8,10 @@ import '../../theme/app_colors.dart';
 import 'exemption_form_dialog.dart';
 
 class AddVaccinationDialog extends StatelessWidget {
-  const AddVaccinationDialog({super.key});
+
+  final int patientId;
+
+  const AddVaccinationDialog({super.key, required this.patientId});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +52,8 @@ class AddVaccinationDialog extends StatelessWidget {
 
   // --- Диалоги ---
   void _showAddVaccinationForm(BuildContext context) {
-    showDialog(context: context, builder: (_) => const VaccinationFormDialog());
+    print(patientId);
+    showDialog(context: context, builder: (_) => VaccinationFormDialog(patientId: patientId));
   }
 
   void _showAddTitresForm(BuildContext context) {

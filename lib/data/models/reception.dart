@@ -20,7 +20,7 @@ class ReceptionResponse {
   factory ReceptionResponse.fromJson(Map<String, dynamic> json) {
     return ReceptionResponse(
       id: json['id'] as int,
-      isCompleted: json['is_completed'] as bool,
+      isCompleted: json['is_completed'] as bool? ?? false,
       specializationId: json['specialization_id'] as int,
       specialization: json['specialization'] != null
           ? SpecializationResponse.fromJson(json['specialization'])
@@ -59,14 +59,28 @@ class ReceptionTemplateResponse {
 
   factory ReceptionTemplateResponse.fromJson(Map<String, dynamic> json) {
     return ReceptionTemplateResponse(
-      id: json['id'] as int,
-      code: json['code'] as String,
-      fields: json['fields'] != null
-          ? json['fields'] is Map<String, dynamic>
-          ? json['fields']
-          : jsonDecode(json['fields'])
-          : {},
+      id: json['id'] as int? ?? 0,
+      code: json['code']?.toString() ?? '',
+      fields: _parseFields(json['fields']),
     );
+  }
+
+  static Map<String, dynamic> _parseFields(dynamic fieldsData) {
+    try {
+      if (fieldsData == null) return {};
+      if (fieldsData is Map<String, dynamic>) return fieldsData;
+      if (fieldsData is String) {
+        return jsonDecode(fieldsData) as Map<String, dynamic>? ?? {};
+      }
+      if (fieldsData is List) {
+        // Если fields приходит как список, преобразуем в Map
+        return {'list_data': fieldsData};
+      }
+      return {};
+    } catch (e) {
+      print('Error parsing fields: $e');
+      return {};
+    }
   }
 
   Map<String, dynamic> toJson() {

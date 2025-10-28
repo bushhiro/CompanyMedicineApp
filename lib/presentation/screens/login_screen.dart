@@ -30,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final request = DoctorLoginRequest(
         phone: _phoneController.text.trim(),
         password: _passwordController.text.trim(),
+        deviceId: "device-000"
       );
 
       final authResponse = await _repo.login(request);

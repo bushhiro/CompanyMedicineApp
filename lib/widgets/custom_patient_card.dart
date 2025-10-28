@@ -21,8 +21,8 @@ class CustomPatientCard extends StatefulWidget {
 }
 
 class _CustomPatientCardState extends State<CustomPatientCard> {
-  final GlobalKey _specialistsButtonKey = GlobalKey();
-  final GlobalKey _analysisButtonKey = GlobalKey();
+  late final GlobalKey _specialistsButtonKey = GlobalKey();
+  late final GlobalKey _analysisButtonKey = GlobalKey();
   OverlayEntry? _overlayEntry;
 
   void _showContactDialog() {
@@ -57,7 +57,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   void _showExamineDialog() {
     showDialog(
       context: context,
-      builder: (_) => const AddVaccinationDialog(),
+      builder: (_) => AddVaccinationDialog(patientId: widget.patient.id,),
     );
   }
 

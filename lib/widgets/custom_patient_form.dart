@@ -243,20 +243,37 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     );
   }
 
+  DateTime _parseDateFromDisplayFormat(String dateText) {
+    try {
+      final parts = dateText.split('.');
+      if (parts.length == 3) {
+        final day = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final year = int.parse(parts[2]);
+        return DateTime(year, month, day); // Создаем дату без времени
+      }
+    } catch (e) {
+      print('Error parsing date from display format: $e');
+    }
+
+    // Если не удалось распарсить, возвращаем дату по умолчанию (не текущую!)
+    return DateTime(2000, 1, 1); // или выбросить исключение
+  }
+
   void _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final fullName =
         "${_lastNameController.text} ${_firstNameController.text} ${_middleNameController.text}";
 
-    final birthDate = DateTime.tryParse(_birthDateController.text) ?? DateTime.now();
+    final birthDate = _parseDateFromDisplayFormat(_birthDateController.text);
 
     try {
-      await AddPatientService(baseUrl: 'http://10.0.2.2:8081/api/v1').addPatient(
+      await AddPatientService(baseUrl: 'http://192.168.29.112:65322/api/v1').addPatient(
         groupId: widget.groupId,
         fullName: fullName,
         birthDate: birthDate,
-        isMale: _isMale, // <- теперь корректно булево значение
+        isMale: _isMale,
         position: _positionController.text,
         division: _divisionController.text,
         examinationTypeId: int.tryParse(_examinationTypeController.text) ?? 4,

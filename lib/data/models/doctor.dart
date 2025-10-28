@@ -27,19 +27,22 @@ class DoctorResponse {
 class DoctorLoginRequest {
   final String phone;
   final String password;
+  final String deviceId;
 
-  DoctorLoginRequest({required this.phone, required this.password});
+  DoctorLoginRequest({required this.phone, required this.password, required this.deviceId});
 
   factory DoctorLoginRequest.fromJson(Map<String, dynamic> json) {
     return DoctorLoginRequest(
       phone: json['phone'],
       password: json['password'],
+      deviceId: json['device_id'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'phone': phone,
     'password': password,
+    'device_id': deviceId,
   };
 }
 
@@ -51,8 +54,8 @@ class DoctorAuthResponse {
 
   factory DoctorAuthResponse.fromJson(Map<String, dynamic> json) {
     return DoctorAuthResponse(
-      id: json['id'],
-      token: json['token'],
+      id: json['id'] as int? ?? 0,
+      token: json['token'] as String? ?? '',
     );
   }
 

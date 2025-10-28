@@ -18,7 +18,7 @@ class VaccineAllResponse {
       id: json['id'] as int,
       date: DateTime.parse(json['date'] as String),
       type: json['type'] as String,
-      title: json['title'] as String,
+      title: json['title'].toString(),
       titerAmountStr: json['titer_amount_str'] as String?,
     );
   }

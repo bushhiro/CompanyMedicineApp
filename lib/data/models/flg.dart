@@ -16,7 +16,7 @@ class FlgResponse {
   factory FlgResponse.fromJson(Map<String, dynamic> json) {
     return FlgResponse(
       id: json['id'] as int,
-      isCompleted: json['is_completed'] as bool,
+      isCompleted: json['is_completed'] as bool? ?? false,
       organization: json['organization'] as String,
       number: json['number'] as String,
       result: json['result'] as String,

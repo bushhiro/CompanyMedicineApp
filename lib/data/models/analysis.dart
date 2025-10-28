@@ -48,7 +48,7 @@ class AnalysisOrderItemResponse {
       id: json['id'],
       analysisId: json['analysis_id'],
       analysis: AnalysisResponse.fromJson(json['analysis']),
-      isCompleted: json['is_completed'],
+      isCompleted: json['is_completed'] as bool,
     );
   }
 
