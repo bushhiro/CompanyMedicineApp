@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final request = DoctorLoginRequest(
         phone: _phoneController.text.trim(),
         password: _passwordController.text.trim(),
-        deviceId: "device-000"
+        deviceId: 'device_id000',
       );
 
       final authResponse = await _repo.login(request);
@@ -41,10 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception("Пустой ответ");
       }
 
-      final doctor = await _repo.getCurrentDoctor(authResponse.token);
+      final doctor = await _repo.getCurrentDoctor(authResponse.token, authResponse.id);
 
       print("TOKEN IS : ${authResponse.token}");
       await prefs.setString('token', authResponse.token);
+      await prefs.setInt('doctorId', authResponse.id);
       if (!mounted) return;
 
       Navigator.pushReplacement(
@@ -72,27 +73,27 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(title: const Text("Авторизация"), backgroundColor: AppColors.primaryColor),
       body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(labelText: "Телефон"),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: "Пароль"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            if (_error != null)
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: "Телефон"),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: "Пароль"),
+                obscureText: true,
+              ),
+              const SizedBox(height: 24),
+              if (_error != null)
+                Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               const SizedBox(height: 24),
               ActionButtons(
                 alignment: Alignment.center,
@@ -100,8 +101,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 openLabel: "Войти",
                 onOpen: _loading ? null : _login,
               ),
-          ],
-        )
+            ],
+          )
       ),
     );
   }

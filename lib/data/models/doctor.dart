@@ -1,14 +1,17 @@
 class DoctorResponse {
+  final int id;
   final String fullName;
   final List<SpecializationResponse>? specializations;
 
   DoctorResponse({
+    required this.id,
     required this.fullName,
     this.specializations,
   });
 
   factory DoctorResponse.fromJson(Map<String, dynamic> json) {
     return DoctorResponse(
+      id: json['ID'],
       fullName: json['full_name'],
       specializations: json['specializations'] != null
           ? (json['specializations'] as List)
@@ -19,6 +22,7 @@ class DoctorResponse {
   }
 
   Map<String, dynamic> toJson() => {
+    'ID': id,
     'full_name': fullName,
     'specializations': specializations?.map((e) => e.toJson()).toList(),
   };
@@ -54,7 +58,7 @@ class DoctorAuthResponse {
 
   factory DoctorAuthResponse.fromJson(Map<String, dynamic> json) {
     return DoctorAuthResponse(
-      id: json['id'] as int? ?? 0,
+      id: json['id'] as int? ?? 1,
       token: json['token'] as String? ?? '',
     );
   }

@@ -33,9 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<List<Organization>> _fetchOrganizations() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
+    final doctorId = prefs.getInt('doctorId');
+    print('DOCTOR ID IS: $doctorId');
     if (token == null) throw Exception('JWT токен не найден');
 
-    final url = Uri.parse('http://192.168.29.112:65322/api/v1/organizations');
+    final url = Uri.parse('http://192.168.29.112:65322/api/v1/organizations/$doctorId');
     final response = await http.get(
       url,
       headers: {

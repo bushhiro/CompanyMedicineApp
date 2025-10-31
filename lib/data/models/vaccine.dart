@@ -3,14 +3,12 @@ class VaccineAllResponse {
   final DateTime date;
   final String type;
   final String title;
-  final String? titerAmountStr;
 
   VaccineAllResponse({
     required this.id,
     required this.date,
     required this.type,
     required this.title,
-    this.titerAmountStr,
   });
 
   factory VaccineAllResponse.fromJson(Map<String, dynamic> json) {
@@ -19,7 +17,6 @@ class VaccineAllResponse {
       date: DateTime.parse(json['date'] as String),
       type: json['type'] as String,
       title: json['title'].toString(),
-      titerAmountStr: json['titer_amount_str'] as String?,
     );
   }
 
@@ -29,7 +26,6 @@ class VaccineAllResponse {
       'date': date.toIso8601String(),
       'type': type,
       'title': title,
-      'titer_amount_str': titerAmountStr,
     };
   }
 }

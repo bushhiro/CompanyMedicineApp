@@ -40,16 +40,12 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
 
   Future<List<PatientResponse>> _fetchPatients() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) throw Exception('JWT токен не найден.');
 
       final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/patients');
       final response = await http.get(
         url,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
         },
       );
 

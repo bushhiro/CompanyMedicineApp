@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:work_app/ui/dialogs/refusal_form_dialog.dart';
 import 'package:work_app/ui/dialogs/titres_form_dialog.dart';
 import 'package:work_app/ui/dialogs/vaccination_form_dialog.dart';
@@ -57,14 +56,14 @@ class AddVaccinationDialog extends StatelessWidget {
   }
 
   void _showAddTitresForm(BuildContext context) {
-    showDialog(context: context, builder: (_) => const TitresFormDialog());
+    showDialog(context: context, builder: (_) => TitresFormDialog(patientId: patientId,));
   }
 
   void _showAddRefusalForm(BuildContext context) {
-    showDialog(context: context, builder: (_) => const RefusalFormDialog());
+    showDialog(context: context, builder: (_) =>  RefusalFormDialog(patientId: patientId,));
   }
 
   void _showAddExemptionForm(BuildContext context) {
-    showDialog(context: context, builder: (_) => const ExemptionFormDialog());
+    showDialog(context: context, builder: (_) => ExemptionFormDialog(patientId: patientId,));
   }
 }

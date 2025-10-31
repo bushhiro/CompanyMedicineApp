@@ -25,8 +25,15 @@ class DownloadedListsScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final group = downloadedLists[index];
           return Card(
+            color: AppColors.primaryColor,
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: AppColors.borderColor,
+                width: 2,
+              )
+            ),
             clipBehavior: Clip.antiAlias,
             child: Padding(
               padding: const EdgeInsets.all(12),

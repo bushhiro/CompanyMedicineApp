@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/patient.dart';
 
 class PatientRepository {
-  static const String _baseUrl = 'http://10.0.2.2:8081/api/v1/patients';
+  static const String _baseUrl = 'http://192.168.29.112:65322/api/v1/patient-groups/by-organization/1?search=1&page=1&perPage=10';
 
   /// Получить всех пациентов по ID группы
   Future<List<PatientResponse>> getPatientsByGroup(int groupId) async {

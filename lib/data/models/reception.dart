@@ -49,7 +49,7 @@ class ReceptionResponse {
 class ReceptionTemplateResponse {
   final int id;
   final String code;
-  final Map<String, dynamic> fields;
+  final List<Map<String, dynamic>> fields;
 
   ReceptionTemplateResponse({
     required this.id,
@@ -65,21 +65,26 @@ class ReceptionTemplateResponse {
     );
   }
 
-  static Map<String, dynamic> _parseFields(dynamic fieldsData) {
+  static List<Map<String, dynamic>> _parseFields(dynamic fieldsData) {
     try {
-      if (fieldsData == null) return {};
-      if (fieldsData is Map<String, dynamic>) return fieldsData;
-      if (fieldsData is String) {
-        return jsonDecode(fieldsData) as Map<String, dynamic>? ?? {};
-      }
+      if (fieldsData == null) return [];
       if (fieldsData is List) {
-        // Если fields приходит как список, преобразуем в Map
-        return {'list_data': fieldsData};
+        return fieldsData
+            .whereType<Map<String, dynamic>>()
+            .toList();
       }
-      return {};
+      if (fieldsData is String) {
+        final decoded = jsonDecode(fieldsData);
+        if (decoded is List) {
+          return decoded
+              .whereType<Map<String, dynamic>>()
+              .toList();
+        }
+      }
+      return [];
     } catch (e) {
       print('Error parsing fields: $e');
-      return {};
+      return [];
     }
   }
 

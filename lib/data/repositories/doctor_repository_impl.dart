@@ -16,6 +16,11 @@ class DoctorRepositoryImpl {
       body: jsonEncode(request.toJson()),
     );
 
+    print('=== LOGIN REQUEST ===');
+    print('URL: $baseUrl');
+    print('Body: ${jsonDecode(response.body)}');
+
+
     if (response.statusCode == 200) {
       final jsonBody = jsonDecode(response.body);
       return DoctorAuthResponse.fromJson(jsonBody);
@@ -24,8 +29,8 @@ class DoctorRepositoryImpl {
     }
   }
 
-  Future<DoctorResponse?> getCurrentDoctor(String token) async {
-    final url = Uri.parse('$baseUrl/doctors/current');
+  Future<DoctorResponse?> getCurrentDoctor(String token, int doctorId) async {
+    final url = Uri.parse('$baseUrl/doctors/$doctorId');
 
     final response = await http.get(
       url,
@@ -33,6 +38,10 @@ class DoctorRepositoryImpl {
         'Authorization': 'Bearer $token',
       },
     );
+
+    print('=== LOGIN RESPONSE ===');
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final jsonBody = jsonDecode(response.body);

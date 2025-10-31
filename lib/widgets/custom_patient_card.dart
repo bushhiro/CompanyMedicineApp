@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/patient.dart';
 import '../data/models/analysis.dart';
 import '../data/models/reception.dart';
+import '../presentation/screens/analysis_screen.dart';
 import '../theme/app_colors.dart';
 import '../ui/dialogs/add_flg_dialog.dart';
 import '../ui/dialogs/add_vaccination_dialog.dart';
@@ -21,8 +22,8 @@ class CustomPatientCard extends StatefulWidget {
 }
 
 class _CustomPatientCardState extends State<CustomPatientCard> {
-  late final GlobalKey _specialistsButtonKey = GlobalKey();
-  late final GlobalKey _analysisButtonKey = GlobalKey();
+  final GlobalKey _specialistsButtonKey = GlobalKey();
+  final GlobalKey _analysisButtonKey = GlobalKey();
   OverlayEntry? _overlayEntry;
 
   void _showContactDialog() {
@@ -211,7 +212,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     child: ActionButtons(
                       showOpen: true,
                       openLabel: "Осмотреть пациента",
-                      onOpen: () => Navigator.pop(context),
+                      onOpen: () => showReceptionsDialog(context, widget.patient.receptions ?? [], widget.patient),
                     ),
                   ),
                 ],
@@ -334,100 +335,82 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 20, top: 20),
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (vaccines.isNotEmpty)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Список прививок
-                      Expanded(
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: vaccines.length,
-                          itemBuilder: (context, i) {
-                            final v = vaccines[i];
-                            return Card(
-                              color: Colors.green.shade50,
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: ListTile(
-                                leading: const Icon(Icons.vaccines, color: Colors.green),
-                                title: Text(v.title),
-                                subtitle: Text(
-                                    "Дата: ${v.date.day.toString().padLeft(2, '0')}.${v.date.month.toString().padLeft(2, '0')}.${v.date.year}"),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Кнопка "Добавить прививку"
-                      Padding(
-                        padding: const EdgeInsets.only(top: 55),
-                        child: SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: ElevatedButton(
-                            onPressed: _showExamineDialog, // вызываем метод
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.all(8),
-                              backgroundColor: AppColors.primaryColor,
-                              foregroundColor: AppColors.hintColor,
-                              side: const BorderSide(color: AppColors.borderColor, width: 1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                // Список прививок с прокруткой
+                Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxHeight: 240, // ограничиваем высоту списка
+                    ),
+                    child: vaccines.isNotEmpty
+                        ? ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: vaccines.length,
+                      itemBuilder: (context, i) {
+                        final v = vaccines[i];
+                        return Card(
+                          color: Colors.green.shade50,
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          child: ListTile(
+                            leading: const Icon(Icons.vaccines, color: Colors.green),
+                            title: Text(
+                              v.title,
+                              style: const TextStyle(
+                                color: AppColors.primaryTextColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.edit, size: 30, color: AppColors.extraButtonColor),
-                                SizedBox(height: 6),
-                                Text(
-                                  "Добавить прививку",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 14, color: AppColors.primaryTextColor),
-                                ),
-                              ],
+                            subtitle: Text(
+                              "Дата: ${v.date.day.toString().padLeft(2, '0')}.${v.date.month.toString().padLeft(2, '0')}.${v.date.year}",
+                              style: const TextStyle(color: AppColors.primaryTextColor),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  Center(
-                    child: SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: ElevatedButton(
-                        onPressed: _showExamineDialog, // вызываем метод
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(8),
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: AppColors.hintColor,
-                          side: const BorderSide(color: AppColors.borderColor, width: 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.edit, size: 30, color: AppColors.extraButtonColor),
-                            SizedBox(height: 6),
-                            Text(
-                              "Добавить прививку",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: AppColors.primaryTextColor),
-                            ),
-                          ],
-                        ),
+                        );
+                      },
+                    )
+                        : const Center(
+                      child: Text(
+                        "Прививки не найдены",
+                        style: TextStyle(color: AppColors.primaryTextColor),
                       ),
                     ),
                   ),
+                ),
+
+                const SizedBox(width: 16),
+
+                Center(
+                  child: SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: ElevatedButton(
+                      onPressed: _showExamineDialog,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(8),
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: AppColors.primaryTextColor,
+                        side: const BorderSide(color: AppColors.borderColor, width: 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.edit, size: 30, color: AppColors.extraButtonColor),
+                          SizedBox(height: 6),
+                          Text(
+                            "Добавить прививку",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: AppColors.primaryTextColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -445,7 +428,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Левая панель с общей информацией
-        _buildLeftInfo(p, 0, 0, 0, 0),
+        _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
         // Правая часть вкладки ФЛГ
         Expanded(
           child: Padding(
@@ -457,7 +440,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Текст информации о ФЛГ
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,20 +451,19 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                           ],
                         ),
                       ),
-                      // Кнопка "Добавить ФЛГ"
+
                       SizedBox(
-                        width: 120, // квадратная форма
+                        width: 120,
                         height: 120,
                         child: ElevatedButton(
                           onPressed: () async {
                             final result = await showDialog(
                               context: context,
-                              builder: (context) => const AddFlgDialog(),
+                              builder: (context) =>  AddFlgDialog(patientId: widget.patient.id),
                             );
 
                             if (result != null) {
-                              print("Добавлено ФЛГ: $result");
-                              // TODO: реализовать сохранение результата через API
+
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -516,8 +498,15 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                       width: 120,
                       height: 120,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Обработчик добавления ФЛГ
+                        onPressed: () async {
+                          final result = await showDialog(
+                            context: context,
+                            builder: (context) =>  AddFlgDialog(patientId: widget.patient.id,),
+                          );
+
+                          if (result != null) {
+
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.all(8),
@@ -556,7 +545,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
       int testsDone, int testsTotal) {
     return Row(
       children: [
-          _buildLeftInfo(widget.patient, 0, 0, 0, 0),
+          _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
           const Padding(
             padding: EdgeInsets.only(left: 20, right: 20, top: 20),
             child: Center(
@@ -571,17 +560,8 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
             width: 120, // квадратная форма
             height: 120,
             child: ElevatedButton(
-              onPressed: () async {
-                final result = await showDialog(
-                  context: context,
-                  builder: (context) => const AddFlgDialog(),
-                );
+              onPressed: () {},
 
-                if (result != null) {
-                  print("Добавлено Соглашение: $result");
-                  // TODO: реализовать сохранение результата через API
-                }
-              },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(8),
                 backgroundColor: Colors.white,
@@ -659,4 +639,187 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
       ),
     );
   }
+}
+
+void showReceptionsDialog(BuildContext context, List<ReceptionResponse> receptions, PatientResponse patient) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final screenHeight = MediaQuery.of(context).size.height;
+      final screenWidth = MediaQuery.of(context).size.width;
+
+      return AlertDialog(
+        backgroundColor: AppColors.primaryColor,
+        title: Text('Осмотр пациента ${patient.fullName}',
+          style: TextStyle(color: AppColors.primaryTextColor),
+        ),
+        content: SizedBox(
+          width: screenWidth * 0.5,
+          height: screenHeight * 0.25,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (receptions.isEmpty)
+                  const Text(
+                    "Нет доступных заключений.",
+                    style: TextStyle(color: AppColors.secondaryTextColor),
+                  ),
+                ...receptions.map((reception) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: screenWidth * 0.5 * 0.8, // 80% от ширины диалога
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonColor,
+                          foregroundColor: AppColors.secondaryTextColor,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          showReceptionFormDialog(context, reception); // Открываем форму
+                        },
+                        child: Text(
+                          "Заключение врача: ${reception.specialization?.title ?? 'Без названия'}",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+
+                SizedBox(height: 8,),
+
+                SizedBox(
+                  width: screenWidth*0.5 * 0.8,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AnalysisScreen(patient: patient,)),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,
+                      foregroundColor: AppColors.secondaryTextColor,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                        "Медсестра"
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Закрыть",
+              style: TextStyle(color: AppColors.primaryTextColor),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Второй диалог — форма заключения
+void showReceptionFormDialog(BuildContext context, ReceptionResponse reception) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final screenHeight = MediaQuery.of(context).size.height;
+      final screenWidth = MediaQuery.of(context).size.width;
+
+      // Достаём поля формы (fields)
+      final fieldsData = reception.template.fields;
+      final fields = (fieldsData) as List;
+
+      return AlertDialog(
+        backgroundColor: AppColors.primaryColor,
+        title: Text(
+          "Форма заключения: ${reception.specialization?.title ?? 'Врач'}",
+          style: const TextStyle(color: AppColors.primaryTextColor),
+        ),
+        content: SizedBox(
+          width: screenWidth * 0.75,
+          height: screenHeight * 0.75,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: fields.map((field) {
+                final fieldName = field['name'] ?? '';
+                final fieldTitle = field['title'] ?? '';
+                final tag = field['tag'] ?? 'input';
+                final value = reception.data[fieldName]?.toString() ?? '';
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: TextField(
+                    controller: TextEditingController(text: value),
+                    keyboardType: tag == 'number'
+                        ? TextInputType.number
+                        : TextInputType.text,
+                    decoration: InputDecoration(
+                      labelText: fieldTitle,
+                      labelStyle: const TextStyle(color: AppColors.hintColor),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: AppColors.hintColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: AppColors.hintColor, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.buttonColor,
+              foregroundColor: AppColors.secondaryTextColor,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Отмена"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.buttonColor,
+              foregroundColor: AppColors.secondaryTextColor,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              // TODO: реализовать сохранение данных формы
+              Navigator.pop(context);
+            },
+            child: const Text("Сохранить"),
+          ),
+        ],
+      );
+    },
+  );
 }

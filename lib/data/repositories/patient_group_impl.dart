@@ -9,26 +9,14 @@ class PatientGroupImpl {
 
   PatientGroupImpl({required this.baseUrl});
 
-  /// Получаем токен, сохранённый при логине
-  Future<String> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token')?.trim();
-    if (token == null || token.isEmpty) {
-      throw Exception('JWT токен не найден. Авторизуйтесь заново.');
-    }
-    return token;
-  }
-
   /// Получить группы пациентов по ID организации
   Future<List<PatientGroupShortResponse>> getGroupsByOrganization(String organizationId) async {
-    final token = await _getToken();
     final Uri url = Uri.parse('$baseUrl/patient-groups/by-organization/$organizationId?page=1&perPage=10');
 
     final response = await http.get(
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // используем сохранённый токен
       },
     );
 

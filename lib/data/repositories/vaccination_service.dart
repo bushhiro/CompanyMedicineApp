@@ -22,11 +22,8 @@ class VaccinationService {
     required int resultId,
     required int titleId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) throw Exception("JWT токен не найден");
 
-    final url = Uri.parse('$baseUrl/vaccinations'); // Уточните endpoint
+    final url = Uri.parse('$baseUrl/vaccines'); // Уточните endpoint
 
     final Map<String, dynamic> body = {
       "body_part_id": bodyPartId,
@@ -46,7 +43,6 @@ class VaccinationService {
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
       },
       body: json.encode(body),
     );
