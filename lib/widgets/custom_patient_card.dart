@@ -297,7 +297,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _statusBadge("ФЛГ", p.flg != null, p.flg?.result),
+                _statusBadge("ФЛГ", p.flgs.isNotEmpty),
                 _statusBadge(
                   "Прививки",
                   p.vaccines != null && p.vaccines!.isNotEmpty,
@@ -420,119 +420,133 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   }
 
   /// ФЛГ
-  Widget _buildFlgTab(PatientResponse p, int specialistsDone, int specialistsTotal,
-      int testsDone, int testsTotal) {
-    final flg = p.flg;
+  Widget _buildFlgTab(
+      PatientResponse p,
+      int specialistsDone,
+      int specialistsTotal,
+      int testsDone,
+      int testsTotal,
+      ) {
+    final flgs = p.flgs; // список ФЛГ
+    print("FLGS:::: $flgs");
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Левая панель с общей информацией
         _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
+
         // Правая часть вкладки ФЛГ
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(left: 20, top: 75, right: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
+            child: flgs.isNotEmpty
+                ? Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (flg != null)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _infoRow("Организация", flg.organization),
-                            _infoRow("Номер", flg.number),
-                            _infoRow("Результат", flg.result),
-                          ],
+                // Список ФЛГ
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: AlwaysScrollableScrollPhysics(),
+                    itemCount: flgs.length,
+                    itemBuilder: (context, index) {
+                      final f = flgs[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          title: Text(f.organization),
+                          subtitle: Text("Номер: ${f.number}\nРезультат: ${f.result}"),
                         ),
-                      ),
+                      );
+                    },
+                  ),
+                ),
 
-                      SizedBox(
-                        width: 120,
-                        height: 120,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final result = await showDialog(
-                              context: context,
-                              builder: (context) =>  AddFlgDialog(patientId: widget.patient.id),
-                            );
+                const SizedBox(width: 16),
 
-                            if (result != null) {
-
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.all(8),
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            side: const BorderSide(color: Colors.grey, width: 1), // тонкий серый бордер
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8), // слегка скруглённая
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.edit, size: 40, color: Colors.blue),
-                              SizedBox(height: 6),
-                              Text(
-                                "Добавить ФЛГ",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                // Если ФЛГ нет, просто показываем кнопку по центру
-                  Center(
-                    child: SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final result = await showDialog(
-                            context: context,
-                            builder: (context) =>  AddFlgDialog(patientId: widget.patient.id,),
-                          );
-
-                          if (result != null) {
-
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(8),
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          side: const BorderSide(color: Colors.grey, width: 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.edit, size: 40, color: Colors.black),
-                            SizedBox(height: 6),
-                            Text(
-                              "Добавить ФЛГ",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: Colors.black),
-                            ),
-                          ],
-                        ),
+                // Кнопка "Добавить ФЛГ"
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final result = await showDialog(
+                        context: context,
+                        builder: (context) => AddFlgDialog(patientId: widget.patient.id),
+                      );
+                      if (result != null) {
+                        setState(() {
+                          // Обновляем список после добавления
+                          // Можно вызвать fetchPatient() или добавить новый объект в flgs
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(8),
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.grey, width: 1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.edit, size: 40, color: Colors.blue),
+                        SizedBox(height: 6),
+                        Text(
+                          "Добавить ФЛГ",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.black),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
               ],
+            )
+            // Если список пуст — показываем кнопку по центру
+                : Center(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final result = await showDialog(
+                      context: context,
+                      builder: (context) => AddFlgDialog(patientId: widget.patient.id),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        // Обновляем список после добавления
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(8),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.grey, width: 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.edit, size: 40, color: Colors.black),
+                      SizedBox(height: 6),
+                      Text(
+                        "Добавить ФЛГ",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -586,21 +600,6 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-              width: 130,
-              child:
-              Text("$label:", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
-          Expanded(child: Text(value, style: TextStyle(fontSize: 16),)),
-        ],
-      ),
     );
   }
 

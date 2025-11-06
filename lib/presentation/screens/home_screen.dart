@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:work_app/data/models/doctor.dart';
 import '../../../data/models/patient_group.dart'; // здесь твоя модель Organization
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_organization_card.dart';
@@ -37,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = prefs.getString('token');
     final doctorId = prefs.getInt('doctorId');
     print('DOCTOR ID IS: $doctorId');
-    if (token == null) throw Exception('JWT токен не найден');
+
 
     final url = Uri.parse('http://192.168.29.112:65322/api/v1/organizations/$doctorId');
     final response = await http.get(

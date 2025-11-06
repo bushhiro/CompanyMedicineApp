@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:work_app/widgets/action_buttons.dart';
 import '../../data/models/doctor.dart';
 import '../../data/repositories/doctor_repository_impl.dart';
@@ -35,24 +34,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final authResponse = await _repo.login(request);
 
-      final prefs = await SharedPreferences.getInstance();
-
       if (authResponse == null) {
         throw Exception("Пустой ответ");
       }
 
-      final doctor = await _repo.getCurrentDoctor(authResponse.token, authResponse.id);
+      final doctor = await _repo.getCurrentDoctor(authResponse.id);
 
-      print("TOKEN IS : ${authResponse.token}");
-      await prefs.setString('token', authResponse.token);
-      await prefs.setInt('doctorId', authResponse.id);
-      if (!mounted) return;
-
+      print(doctor!.id);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => HomeScreen(
-            doctorName: doctor?.fullName ?? 'Неизвестно', doctorId: doctor!.id,
+            doctorName: doctor.fullName, doctorId: doctor.id,
           ),
         ),
       );

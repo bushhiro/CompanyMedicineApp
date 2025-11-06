@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/patient.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_drawer.dart';
@@ -43,6 +42,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   Future<List<PatientResponse>> _fetchPatients() async {
     try {
 
+      print(widget.doctorId);
       final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/${widget.doctorId}/patients');
       final response = await http.get(
         url,
@@ -56,6 +56,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
       print('Status: ${response.statusCode}');
       print('Body: ${response.body}');
       print('===================');
+      print(widget.doctorId);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);

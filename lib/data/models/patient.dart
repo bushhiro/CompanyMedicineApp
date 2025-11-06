@@ -21,7 +21,7 @@ class PatientResponse {
   final ContactInfoResponse contactInfo;
   final AnalysisOrderResponse analysisOrder;
   final PatientStatisticsResponse? statistics;
-  final FlgResponse? flg;
+  final List<FlgResponse> flgs;
 
   final List<VaccineAllResponse>? vaccines;
   final List<ReceptionResponse>? receptions;
@@ -43,7 +43,7 @@ class PatientResponse {
     required this.contactInfo,
     required this.analysisOrder,
     this.statistics,
-    this.flg,
+    required this.flgs,
     this.vaccines,
     this.receptions,
     this.specializations,
@@ -68,7 +68,11 @@ class PatientResponse {
       statistics: json['statistics'] != null
           ? PatientStatisticsResponse.fromJson(json['statistics'])
           : null,
-      flg: json['flg'] != null ? FlgResponse.fromJson(json['flg']) : null,
+      flgs: json['flgs'] != null
+          ? (json['flgs'] as List)
+          .map((e) => FlgResponse.fromJson(e as Map<String, dynamic>))
+          .toList()
+          : <FlgResponse>[],
       vaccines: json['vaccines'] != null
           ? (json['vaccines'] as List)
           .map((e) => VaccineAllResponse.fromJson(e))
@@ -104,7 +108,7 @@ class PatientResponse {
       'contact_info': contactInfo.toJson(),
       'analysis_order': analysisOrder.toJson(),
       'statistics': statistics?.toJson(),
-      'flg': flg?.toJson(),
+      'flg': flgs.map((e) => e.toJson()).toList(),
       'vaccines': vaccines?.map((e) => e.toJson()).toList(),
       'receptions': receptions?.map((e) => e.toJson()).toList(),
       'specializations': specializations?.map((e) => e.toJson()).toList(),
