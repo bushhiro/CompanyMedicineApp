@@ -13,12 +13,14 @@ class PatientsListScreen extends StatefulWidget {
   final String listTitle;
   final String organizationName;
   final int groupId;
+  final int doctorId;
 
   const PatientsListScreen({
     super.key,
     required this.listTitle,
     required this.organizationName,
     required this.groupId,
+    required this.doctorId,
   });
 
   @override
@@ -41,7 +43,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   Future<List<PatientResponse>> _fetchPatients() async {
     try {
 
-      final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/patients');
+      final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/${widget.doctorId}/patients');
       final response = await http.get(
         url,
         headers: {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:work_app/data/models/doctor.dart';
 import '../../../data/models/patient_group.dart'; // здесь твоя модель Organization
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_organization_card.dart';
@@ -12,8 +13,9 @@ import '../screens/patient_group_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String doctorName;
+  final int doctorId;
 
-  const HomeScreen({super.key, required this.doctorName});
+  const HomeScreen({super.key, required this.doctorName, required this.doctorId});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -143,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             builder: (_) => PatientGroupsScreen(
                               organizationName: org.title,
                               organizationId: org.id.toString(),
+                              doctorId: widget.doctorId,
                             ),
                           ),
                         );

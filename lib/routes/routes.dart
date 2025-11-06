@@ -17,9 +17,13 @@ class AppRoutes {
 
     // Главная страница (принимает имя врача)
       case home:
-        final doctorName = settings.arguments as String? ?? 'Неизвестно';
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final doctorName = args['doctorName'] as String? ?? 'Неизвестно';
+        final doctorId = args['doctorId'] as int? ?? 0;
+
+
         return MaterialPageRoute(
-          builder: (_) => HomeScreen(doctorName: doctorName),
+          builder: (_) => HomeScreen(doctorName: doctorName, doctorId: doctorId,),
         );
 
     // Экран со списками

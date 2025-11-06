@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => HomeScreen(
-            doctorName: doctor?.fullName ?? 'Неизвестно',
+            doctorName: doctor?.fullName ?? 'Неизвестно', doctorId: doctor!.id,
           ),
         ),
       );
