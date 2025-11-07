@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../../../data/models/patient.dart';
+import '../../data/network/network_service.dart';
+import '../../data/repositories/patient_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_drawer.dart';
 import '../../widgets/custom_patient_card.dart';
@@ -12,14 +12,12 @@ class PatientsListScreen extends StatefulWidget {
   final String listTitle;
   final String organizationName;
   final int groupId;
-  final int doctorId;
 
   const PatientsListScreen({
     super.key,
     required this.listTitle,
     required this.organizationName,
     required this.groupId,
-    required this.doctorId,
   });
 
   @override
@@ -32,66 +30,24 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   String _searchQuery = "";
   bool _showCompleted = false;
   bool _showDebts = false;
+  late final PatientRepository repository;
 
   @override
   void initState() {
     super.initState();
-    _futurePatients = _fetchPatients();
-  }
-
-  Future<List<PatientResponse>> _fetchPatients() async {
-    try {
-
-      print(widget.doctorId);
-      final url = Uri.parse('http://192.168.29.112:65322/api/v1/patient-groups/${widget.groupId}/${widget.doctorId}/patients');
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      );
-
-      // ОТЛАДОЧНЫЙ ВЫВОД ДО ПРОВЕРКИ СТАТУСА
-      print('=== RAW RESPONSE ===');
-      print('Status: ${response.statusCode}');
-      print('Body: ${response.body}');
-      print('===================');
-      print(widget.doctorId);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonData = json.decode(response.body);
-        final List<dynamic> patientsJson = jsonData['data'];
-
-        final patients = <PatientResponse>[];
-
-        for (var item in patientsJson) {
-          try {
-            print('Processing patient: ${item['id']}');
-            print('is_male: ${item['is_male']} (type: ${item['is_male']?.runtimeType})');
-
-            final patient = PatientResponse.fromJson(item as Map<String, dynamic>);
-            patients.add(patient);
-          } catch (e, stackTrace) {
-            print('ERROR processing patient ${item['id']}: $e');
-            print('Stack trace: $stackTrace');
-            print('Problematic data: $item');
-            rethrow;
-          }
-        }
-
-        setState(() {
-          _allPatients = patients;
-        });
-
-        return _allPatients;
-      } else {
-        throw Exception('Ошибка при получении пациентов: ${response.statusCode}\n${response.body}');
-      }
-    } catch (e, stackTrace) {
-      print('General error in _fetchPatients: $e');
-      print('Stack trace: $stackTrace');
-      rethrow;
-    }
+    repository = PatientRepository(
+      remote: PatientRepositoryRemote(baseUrl: 'http://192.168.29.112:65322/api/v1'),
+      networkService: NetworkService(),
+    );
+    _futurePatients = repository.getPatients(widget.groupId).then((patients) {
+      setState(() {
+        _allPatients = patients;
+      });
+      print('_futurePatients is : $_futurePatients');
+      print('patients is: $patients');
+      print('_all patients is: $_allPatients');
+      return patients;
+    });
   }
 
   List<PatientResponse> _applyFilters() {
@@ -138,7 +94,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
 
           if (newPatient != null) {
             setState(() {
-              _futurePatients = _fetchPatients();
+              _futurePatients = repository.getPatients(widget.groupId);
             });
           }
         },

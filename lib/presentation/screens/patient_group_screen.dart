@@ -9,13 +9,11 @@ import 'patients_list_screen.dart';
 class PatientGroupsScreen extends StatefulWidget {
   final String organizationId;
   final String organizationName;
-  final int doctorId;
 
   const PatientGroupsScreen({
     super.key,
     required this.organizationId,
     required this.organizationName,
-    required this.doctorId,
   });
 
 
@@ -25,19 +23,21 @@ class PatientGroupsScreen extends StatefulWidget {
 }
 
 class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
-  late final PatientGroupImpl _service;
+  late final PatientGroupRepository _repository;
   late Future<List<PatientGroupShortResponse>> _futureGroups;
 
   @override
   void initState() {
     super.initState();
-    _service = PatientGroupImpl(baseUrl: 'http://192.168.29.112:65322/api/v1');
+    _repository = PatientGroupRepository(
+      remoteService: PatientGroupImpl(baseUrl: 'http://192.168.29.112:65322/api/v1'),
+    );
     _loadGroups();
   }
 
   void _loadGroups() {
     setState(() {
-      _futureGroups = _service.getGroupsByOrganization(widget.organizationId);
+      _futureGroups = _repository.getGroups(widget.organizationId);
     });
   }
 
@@ -69,7 +69,6 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
               ActionButtons(
                 reloadOrganizations: _loadGroups,
                 showRefresh: true,
-                showClear: false,
                 refreshLabel: "Обновить списки",
               ),
               Expanded(
@@ -150,20 +149,16 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                                       ActionButtons(
                                         showOpen: true,
                                         buttonSize: const Size(150, 60),
-                                        onOpen: () {
-                                          DownloadedGroupsService().addGroup(
-                                              group); // добавляем глобально
+                                        onOpen: () async {
+                                          await _repository.localDao.insertGroup(group); // сохраняем оффлайн
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (_) =>
-                                                  PatientsListScreen(
-                                                    listTitle: group.code,
-                                                    organizationName: group
-                                                        .organizationTitle,
-                                                    groupId: group.id,
-                                                    doctorId: widget.doctorId,
-                                                  ),
+                                              builder: (_) => PatientsListScreen(
+                                                listTitle: group.code,
+                                                organizationName: group.organizationTitle,
+                                                groupId: group.id,
+                                              ),
                                             ),
                                           );
                                         },

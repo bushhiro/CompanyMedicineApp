@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import '../local/dao/patient_group_dao.dart';
 import '../models/patient_group.dart';
+import '../network/network_service.dart';
 
 /// Сервис для получения групп пациентов с авторизацией
 class PatientGroupImpl {
@@ -34,5 +35,50 @@ class PatientGroupImpl {
         'Ошибка при получении групп пациентов: ${response.statusCode}\n${response.body}',
       );
     }
+  }
+}
+
+
+class PatientGroupRepository {
+  final PatientGroupImpl remoteService;
+  final PatientGroupDao localDao = PatientGroupDao();
+  final NetworkService networkService = NetworkService();
+
+  PatientGroupRepository({required this.remoteService});
+
+  /// Получение групп пациентов по организации с поддержкой оффлайн
+  Future<List<PatientGroupShortResponse>> getGroups(String organizationId) async {
+    // Проверяем подключение к интернету
+    final bool isOnline = await networkService.isConnected;
+
+    if (isOnline) {
+      try {
+        // Получаем данные с сервера
+        final remoteGroups = await remoteService.getGroupsByOrganization(organizationId);
+
+        // Сохраняем или обновляем данные в локальной базе
+        for (var group in remoteGroups) {
+          await localDao.insertGroup(group);
+        }
+
+        return remoteGroups;
+      } catch (e) {
+        // Если произошла ошибка на сервере — fallback на локальные данные
+        return await localDao.getAllGroups();
+      }
+    } else {
+      // Если нет сети — берём данные из локальной базы
+      return await localDao.getAllGroups();
+    }
+  }
+
+  /// Удаление группы из локальной базы
+  Future<void> deleteGroup(int id) async {
+    await localDao.deleteGroup(id);
+  }
+
+  /// Очистка всех групп из локальной базы (по необходимости)
+  Future<void> clearAllGroups() async {
+    await localDao.clearAll();
   }
 }

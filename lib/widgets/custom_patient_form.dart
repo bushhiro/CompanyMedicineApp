@@ -18,6 +18,9 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
   bool _snilsRefused = false;
 
   bool _isLoading = true;
+
+  final repository =  PatientRepositoryRemote(baseUrl: 'http://192.168.29.112:65322/api/v1');
+
   Map<String, List<Map<String, dynamic>>> manuals = {};
 
   // Контроллеры для всех текстовых полей
@@ -158,7 +161,7 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildTextField("СНИЛС", _snilsController),
+                            child: _buildTextField("СНИЛС", _snilsController, isRequired: !_snilsRefused),
                           ),
                           const SizedBox(width: 8),
                           Column(
@@ -219,8 +222,11 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {TextInputType? keyboardType}) {
+  Widget _buildTextField(
+      String label,
+      TextEditingController controller,
+      {TextInputType? keyboardType,
+        bool isRequired = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
@@ -230,7 +236,10 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        validator: (v) => v == null || v.isEmpty ? "Поле обязательно" : null,
+        validator: (v){
+          if(!isRequired) return null;
+          return v == null || v.isEmpty ? "Поле обязательно" : null;
+        } ,
       ),
     );
   }
@@ -327,8 +336,7 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     final birthDate = _parseDateFromDisplayFormat(_birthDateController.text);
 
     try {
-      await AddPatientService(baseUrl: 'http://192.168.29.112:65322/api/v1')
-          .addPatient(
+      await repository.addPatient(
         groupId: widget.groupId,
         fullName: fullName,
         birthDate: birthDate,

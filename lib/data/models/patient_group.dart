@@ -16,7 +16,7 @@ class PatientGroupShortResponse {
       id: json['id'] as int,
       createdAt: DateTime.parse(json['created_at'] as String),
       code: json['code'] as String,
-      organizationTitle: json['organization'] as String,
+      organizationTitle: (json['organization_title'] ?? json['organization'] ?? 'Не указано') as String,
     );
   }
 
@@ -25,7 +25,7 @@ class PatientGroupShortResponse {
       'id': id,
       'created_at': createdAt.toIso8601String(),
       'code': code,
-      'organization': organizationTitle,
+      'organization_title': organizationTitle,
     };
   }
 }
@@ -66,4 +66,12 @@ class Organization {
       managerPhone: json['manager'] != null ? json['manager']['phone'] as String? : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+    };
+  }
+
 }

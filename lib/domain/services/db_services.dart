@@ -20,14 +20,14 @@
 //
 //   Future<Database> _initDB() async {
 //     final dbPath = await getDatabasesPath();
-//     final path = join(dbPath, 'app.db');
+//     final path = join(dbPath, 'app.local');
 //
 //     return await openDatabase(
 //       path,
 //       version: 1,
-//       onCreate: (db, version) async {
+//       onCreate: (local, version) async {
 //         // Создаём таблицу организаций
-//         await db.execute('''
+//         await local.execute('''
 //           CREATE TABLE organizations(
 //             id INTEGER PRIMARY KEY AUTOINCREMENT,
 //             name TEXT,
@@ -37,7 +37,7 @@
 //         ''');
 //
 //         // Создаём таблицу пациентов
-//         await db.execute('''
+//         await local.execute('''
 //           CREATE TABLE patients(
 //             id INTEGER PRIMARY KEY AUTOINCREMENT,
 //             fullName TEXT,
@@ -53,7 +53,7 @@
 //         ''');
 //
 //         // Создаём таблицу специалистов пациента
-//         await db.execute('''
+//         await local.execute('''
 //           CREATE TABLE specialists(
 //             id INTEGER PRIMARY KEY AUTOINCREMENT,
 //             patientId INTEGER,
@@ -68,32 +68,32 @@
 //
 //   /// Пример: добавить организацию
 //   Future<int> insertOrganization(Map<String, dynamic> org) async {
-//     final db = await database;
-//     return await db.insert('organizations', org);
+//     final local = await database;
+//     return await local.insert('organizations', org);
 //   }
 //
 //   /// Пример: получить все организации
 //   Future<List<Organization>> getOrganizations() async {
-//     final db = await database;
-//     final result = await db.query('organizations');
+//     final local = await database;
+//     final result = await local.query('organizations');
 //     return result.map((e) => Organization.fromJson(e)).toList();
 //   }
 //
 //   /// Пример: добавить пациента
 //   Future<int> insertPatient(Map<String, dynamic> patient) async {
-//     final db = await database;
-//     return await db.insert('patients', patient);
+//     final local = await database;
+//     return await local.insert('patients', patient);
 //   }
 //
 //   /// Пример: получить всех пациентов
 //   Future<List<Map<String, dynamic>>> getPatients() async {
-//     final db = await database;
-//     return await db.query('patients');
+//     final local = await database;
+//     return await local.query('patients');
 //   }
 //
 //   Future<void> clearOrganizations() async {
-//     final db = await database;
-//     await db.delete('organizations'); // удаляем все записи
+//     final local = await database;
+//     await local.delete('organizations'); // удаляем все записи
 //   }
 //
 //   static const String baseUrl = 'http://10.0.2.2:8081/api/v1/manuals/getAll'; // замените на ваш адрес
