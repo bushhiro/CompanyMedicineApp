@@ -1,6 +1,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:work_app/data/repositories/analysis_repository.dart';
+import 'package:work_app/data/repositories/manual_repository.dart';
 import 'package:work_app/data/repositories/patient_repository.dart';
 import '../../data/models/patient_group.dart';
 import '../../data/network/network_service.dart';
@@ -32,6 +34,11 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
     remote: PatientRepositoryRemote(baseUrl: 'http://192.168.29.112:65322/api/v1'),
     networkService: NetworkService(),
   );
+  final ManualRepository _manualRepository = ManualRepository(
+      remoteService: ManualRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'));
+
+  final AnalysisRepository _analysisRepository = AnalysisRepository(
+      remoteService: AnalysisRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'));
 
   List<PatientGroupShortResponse> _allGroups = [];
   bool _isLoading = true;
@@ -149,6 +156,33 @@ class _PatientGroupsScreenState extends State<PatientGroupsScreen> {
                               buttonSize: const Size(150, 60),
                               onOpen: () async {
                                 await _repository.localDao.insertGroup(group);
+
+                                // Проверяем, есть ли справочники в локальной базе
+                                final localManuals = await _manualRepository.localDao.getAllManuals();
+
+                                if (localManuals.isEmpty) {
+                                  try {
+                                    // Если базы нет, пробуем загрузить с сервера и сохранить в БД
+                                    final remoteManuals = await _manualRepository.remoteService.fetchManuals();
+                                    await _manualRepository.insertManualsToDB(remoteManuals);
+                                  } catch (e) {
+                                    // Если интернета нет или ошибка — просто логируем
+                                    print("Не удалось загрузить manuals с сервера: $e");
+                                  }
+                                }
+
+                                final localAnalyses = await _analysisRepository.localDao.getAllAnalyses();
+                                if (localAnalyses.isEmpty) {
+                                  try {
+                                    final remoteAnalyses = await _analysisRepository.remoteService.fetchAnalyses();
+                                    await _analysisRepository.insertAnalysesToDB(remoteAnalyses);
+                                  } catch (e) {
+                                    print("Не удалось загрузить analyses с сервера: $e");
+                                  }
+                                }
+
+
+                                // Загрузка пациентов группы (онлайн/оффлайн) через репозиторий
                                 await _patientRepository.fetchAndSavePatientsByGroup(group.id);
                                 Navigator.push(
                                   context,

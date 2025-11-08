@@ -20,7 +20,7 @@ class DBHelper {
 
     return await openDatabase(
       path,
-      version: 1, // увеличиваем версию для добавления новой таблицы
+      version: 3, // увеличиваем версию для добавления новой таблицы
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -74,6 +74,9 @@ class DBHelper {
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if(oldVersion < 4){
+
+    }
   }
 
   Future<void> closeDB() async {

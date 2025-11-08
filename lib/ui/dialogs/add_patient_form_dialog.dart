@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../data/repositories/patient_repository.dart';
-import '../theme/app_colors.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../data/repositories/patient_repository.dart';
+import '../../data/repositories/manual_repository.dart';
+import '../../theme/app_colors.dart';
 
 class AddPatientFormDialog extends StatefulWidget {
   final int groupId;
@@ -16,14 +15,16 @@ class AddPatientFormDialog extends StatefulWidget {
 class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
   final _formKey = GlobalKey<FormState>();
   bool _snilsRefused = false;
-
   bool _isLoading = true;
 
-  final repository =  PatientRepositoryRemote(baseUrl: 'http://192.168.29.112:65322/api/v1');
+  final _patientRepository =
+  PatientRepositoryRemote(baseUrl: 'http://192.168.29.112:65322/api/v1');
+
+  late final ManualRepository _manualRepository;
 
   Map<String, List<Map<String, dynamic>>> manuals = {};
 
-  // Контроллеры для всех текстовых полей
+  // Контроллеры
   final _lastNameController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
@@ -39,7 +40,7 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
   final _divisionController = TextEditingController();
   final _emailController = TextEditingController();
 
-  // Значения из dropdown
+  // Dropdown values
   String _gender = "Мужской";
   Map<String, dynamic>? _documentType;
   Map<String, dynamic>? _examinationType;
@@ -49,41 +50,31 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
   @override
   void initState() {
     super.initState();
+    _manualRepository = ManualRepository(
+      remoteService:
+      ManualRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'),
+    );
     _loadManuals();
   }
 
   Future<void> _loadManuals() async {
     try {
-      final url = Uri.parse('http://192.168.29.112:65322/api/v1/manuals');
-      final response = await http.get(url);
+      final manualsList = await _manualRepository.getManuals();
 
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-
-        final data = jsonData["data"] as List;
-        final Map<String, List<Map<String, dynamic>>> grouped = {};
-
-        for (var item in data) {
-          final type = item["type"] as String;
-          grouped.putIfAbsent(type, () => []);
-          grouped[type]!.add({
-            "id": item["id"],
-            "value": item["value"],
-          });
-        }
-
-        setState(() {
-          manuals = grouped;
-          _isLoading = false;
-        });
-      } else {
-        throw Exception("Ошибка загрузки manuals: ${response.statusCode}");
+      // Группируем их по типу
+      final Map<String, List<Map<String, dynamic>>> grouped = {};
+      for (var item in manualsList) {
+        grouped.putIfAbsent(item.type, () => []);
+        grouped[item.type]!.add({"id": item.id, "value": item.value});
       }
-    } catch (e) {
-      print("Ошибка при загрузке manuals: $e");
+
       setState(() {
+        manuals = grouped;
         _isLoading = false;
       });
+    } catch (e) {
+      print("Ошибка при загрузке справочников: $e");
+      setState(() => _isLoading = false);
     }
   }
 
@@ -159,7 +150,8 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildTextField("СНИЛС", _snilsController, isRequired: !_snilsRefused),
+                            child: _buildTextField("СНИЛС", _snilsController,
+                                isRequired: !_snilsRefused),
                           ),
                           const SizedBox(width: 8),
                           Column(
@@ -222,9 +214,10 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
 
   Widget _buildTextField(
       String label,
-      TextEditingController controller,
-      {TextInputType? keyboardType,
-        bool isRequired = true}) {
+      TextEditingController controller, {
+        TextInputType? keyboardType,
+        bool isRequired = true,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
@@ -234,18 +227,20 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        validator: (v){
-          if(!isRequired) return null;
+        validator: (v) {
+          if (!isRequired) return null;
           return v == null || v.isEmpty ? "Поле обязательно" : null;
-        } ,
+        },
       ),
     );
   }
 
-  Widget _buildDropdownManual(String label,
+  Widget _buildDropdownManual(
+      String label,
       List<Map<String, dynamic>>? options,
       Map<String, dynamic>? selected,
-      ValueChanged<Map<String, dynamic>?> onChanged) {
+      ValueChanged<Map<String, dynamic>?> onChanged,
+      ) {
     if (options == null || options.isEmpty) {
       return _buildTextField(label, TextEditingController());
     }
@@ -268,8 +263,12 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     );
   }
 
-  Widget _buildDropdown(String label, String selectedValue, List<String> options,
-      ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+      String label,
+      String selectedValue,
+      List<String> options,
+      ValueChanged<String?> onChanged,
+      ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: DropdownButtonFormField<String>(
@@ -326,7 +325,7 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     }
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final fullName =
@@ -334,16 +333,16 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
     final birthDate = _parseDateFromDisplayFormat(_birthDateController.text);
 
     try {
-      await repository.addPatient(
+      await _patientRepository.addPatient(
         groupId: widget.groupId,
         fullName: fullName,
         birthDate: birthDate,
         gender: _gender,
         position: _positionController.text,
         division: _divisionController.text,
-        examinationTypeId: _examinationType?["id"],
-        examinationViewId: _examinationView?["id"],
-        harmPointId: _harmPoint?["id"],
+        examinationTypeId: _examinationType?["id"] ?? 0,
+        examinationViewId: _examinationView?["id"] ?? 0,
+        harmPointId: _harmPoint?["id"] ?? 0,
         phone: _phoneController.text,
         email: _emailController.text,
         address: _addressController.text,
@@ -356,8 +355,9 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
 
       if (!mounted) return;
       Navigator.pop(context, true);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Пациент успешно добавлен")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Пациент успешно добавлен")),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Ошибка при добавлении пациента: $e")),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_app/data/repositories/analysis_repository.dart';
 import '../../data/models/patient.dart';
 import '../data/models/analysis.dart';
 import '../data/models/reception.dart';
@@ -77,8 +78,8 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     final size = renderBox.size;
 
     final items = forSpecialists
-        ? widget.patient.receptions ?? <ReceptionResponse>[]
-        : widget.patient.analysisOrder.orderItems ?? [];
+        ? widget.patient.receptions
+        : widget.patient.analysisOrder.orderItems;
 
     _overlayEntry = OverlayEntry(
       builder: (context) => GestureDetector(
@@ -150,9 +151,9 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   @override
   Widget build(BuildContext context) {
     final p = widget.patient;
-    final specialistsTotal = p.specializations?.length ?? 0;
+    final specialistsTotal = p.specializations.length;
     final specialistsDone =
-        p.receptions?.where((r) => r.isCompleted).length ?? 0;
+        p.receptions.where((r) => r.isCompleted).length;
     final testsTotal = p.analysisOrder.orderItems.length;
     final testsDone = p.analysisOrder.orderItems
         .where((a) => a.isCompleted)
@@ -212,7 +213,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     child: ActionButtons(
                       showOpen: true,
                       openLabel: "Осмотреть пациента",
-                      onOpen: () => showReceptionsDialog(context, widget.patient.receptions ?? [], widget.patient),
+                      onOpen: () => showReceptionsDialog(context, widget.patient.receptions, widget.patient),
                     ),
                   ),
                 ],
@@ -300,9 +301,9 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                 _statusBadge("ФЛГ", p.flgs.isNotEmpty),
                 _statusBadge(
                   "Прививки",
-                  p.vaccines != null && p.vaccines!.isNotEmpty,
-                  p.vaccines != null && p.vaccines!.isNotEmpty
-                      ? "${p.vaccines!.length} шт."
+                  p.vaccines.isNotEmpty,
+                  p.vaccines.isNotEmpty
+                      ? "${p.vaccines.length} шт."
                       : null,
                 ),
                 if (p.analysisOrder.orderItems.isNotEmpty)
@@ -324,7 +325,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   /// Прививки
   Widget _buildVaccinesTab(PatientResponse p, int specialistsDone, int specialistsTotal,
       int testsDone, int testsTotal) {
-    final vaccines = p.vaccines ?? [];
+    final vaccines = p.vaccines ;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,7 +699,11 @@ void showReceptionsDialog(BuildContext context, List<ReceptionResponse> receptio
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => AnalysisScreen(patient: patient,)),
+                        MaterialPageRoute(builder: (context) => AnalysisScreen(
+                          patient: patient,
+                          analysisRepository: AnalysisRepository(
+                              remoteService: AnalysisRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'))
+                        )),
                       );
                     },
                     style: ElevatedButton.styleFrom(

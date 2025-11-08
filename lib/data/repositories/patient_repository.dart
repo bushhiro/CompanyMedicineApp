@@ -161,6 +161,8 @@ class PatientRepositoryRemote {
       },
     };
 
+    print(body);
+
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

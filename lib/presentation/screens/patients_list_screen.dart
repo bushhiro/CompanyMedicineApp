@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_drawer.dart';
 import '../../widgets/custom_patient_card.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../widgets/custom_patient_form.dart';
+import '../../ui/dialogs/add_patient_form_dialog.dart';
 
 class PatientsListScreen extends StatefulWidget {
   final String listTitle;
@@ -52,7 +52,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
     return _allPatients.where((p) {
       final matchesSearch = p.fullName.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      final hasReceptionDebts = p.receptions.any((r) => !r.isCompleted) ?? false;
+      final hasReceptionDebts = p.receptions.any((r) => !r.isCompleted);
 
       final hasAnalysisDebt = p.analysisOrder.orderItems.any((a) => !a.isCompleted);
       final isDebt = hasAnalysisDebt || hasReceptionDebts;
