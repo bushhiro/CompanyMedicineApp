@@ -67,6 +67,9 @@ class OrganizationRepository {
           await localDao.insertOrganization(org);
         }
 
+        final allOrgs = await localDao.getAllOrganizations();
+        print('Организации в базе после вставки: $allOrgs');
+
         return remoteOrgs;
       } catch (e) {
         // fallback на локальные данные при ошибке

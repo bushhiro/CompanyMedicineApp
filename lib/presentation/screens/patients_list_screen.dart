@@ -32,6 +32,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   bool _showDebts = false;
   late final PatientRepository repository;
 
+
   @override
   void initState() {
     super.initState();
@@ -43,9 +44,6 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
       setState(() {
         _allPatients = patients;
       });
-      print('_futurePatients is : $_futurePatients');
-      print('patients is: $patients');
-      print('_all patients is: $_allPatients');
       return patients;
     });
   }
@@ -54,7 +52,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
     return _allPatients.where((p) {
       final matchesSearch = p.fullName.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      final hasReceptionDebts = p.receptions?.any((r) => !r.isCompleted) ?? false;
+      final hasReceptionDebts = p.receptions.any((r) => !r.isCompleted) ?? false;
 
       final hasAnalysisDebt = p.analysisOrder.orderItems.any((a) => !a.isCompleted);
       final isDebt = hasAnalysisDebt || hasReceptionDebts;

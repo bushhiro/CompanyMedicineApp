@@ -1,6 +1,6 @@
 class AnalysisOrderResponse {
   final int id;
-  final String orderNumber;
+  final String? orderNumber;
   final int totalAmount;
   final List<AnalysisOrderItemResponse> orderItems;
 
@@ -14,11 +14,20 @@ class AnalysisOrderResponse {
   factory AnalysisOrderResponse.fromJson(Map<String, dynamic> json) {
     return AnalysisOrderResponse(
       id: json['id'],
-      orderNumber: json['order_number'],
-      totalAmount: json['total_amount'],
+      orderNumber: json['order_number']?.toString(),
+      totalAmount: json['total_amount'] as int? ?? 0,
       orderItems: (json['order_items'] as List)
           .map((e) => AnalysisOrderItemResponse.fromJson(e))
           .toList(),
+    );
+  }
+
+  factory AnalysisOrderResponse.empty() {
+    return AnalysisOrderResponse(
+      id: 0,
+      orderNumber: "",
+      totalAmount: 0,
+      orderItems: [],
     );
   }
 

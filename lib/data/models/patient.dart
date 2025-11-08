@@ -8,7 +8,7 @@ class PatientResponse {
   final String fullName;
   final DateTime birthDate;
   final int age;
-  final bool isMale;
+  final String gender;
   final String position;
   final String division;
   final int patientGroupID;
@@ -23,16 +23,16 @@ class PatientResponse {
   final PatientStatisticsResponse? statistics;
   final List<FlgResponse> flgs;
 
-  final List<VaccineAllResponse>? vaccines;
-  final List<ReceptionResponse>? receptions;
-  final List<SpecializationResponse>? specializations;
+  final List<VaccineAllResponse> vaccines;
+  final List<ReceptionResponse> receptions;
+  final List<SpecializationResponse> specializations;
 
   PatientResponse({
     required this.id,
     required this.fullName,
     required this.birthDate,
     required this.age,
-    required this.isMale,
+    required this.gender,
     required this.position,
     required this.division,
     required this.patientGroupID,
@@ -44,51 +44,62 @@ class PatientResponse {
     required this.analysisOrder,
     this.statistics,
     required this.flgs,
-    this.vaccines,
-    this.receptions,
-    this.specializations,
+    required this.vaccines,
+    required this.receptions,
+    required this.specializations,
   });
 
   factory PatientResponse.fromJson(Map<String, dynamic> json) {
-    return PatientResponse(
-      id: json['id'] as int,
-      fullName: json['full_name'].toString(),
-      birthDate: DateTime.parse(json['birth_date'].toString()),
-      age: json['age'] as int,
-      isMale: json['is_male'] as bool? ?? false,
-      position: json['position'].toString(),
-      division: json['division'].toString(),
-      patientGroupID: json['patient_group_id'] as int,
-      examinationType: json['examination_type'] as int,
-      examinationView: json['examination_view'] as int,
-      harmPoint: HarmPointResponse.fromJson(json['harm_point']),
-      personalInfo: PersonalInfoResponse.fromJson(json['personal_info']),
-      contactInfo: ContactInfoResponse.fromJson(json['contact_info']),
-      analysisOrder: AnalysisOrderResponse.fromJson(json['analysis_order']),
-      statistics: json['statistics'] != null
-          ? PatientStatisticsResponse.fromJson(json['statistics'])
-          : null,
-      flgs: json['flgs'] != null
-          ? (json['flgs'] as List)
-          .map((e) => FlgResponse.fromJson(e as Map<String, dynamic>))
-          .toList()
-          : <FlgResponse>[],
-      vaccines: json['vaccines'] != null
-          ? (json['vaccines'] as List)
-          .map((e) => VaccineAllResponse.fromJson(e))
-          .toList()
-          : null,
-      receptions: json['receptions'] != null
-          ? (json['receptions'] as List)
-          .map((e) => ReceptionResponse.fromJson(e))
-          .toList()
-          : null,
-      specializations: json['specializations'] != null
-          ? (json['specializations'] as List)
-          .map((e) => SpecializationResponse.fromJson(e))
-          .toList()
-          : null,
-    );
+    try {
+      return PatientResponse(
+        id: json['id'] as int? ?? 0,
+        fullName: json['full_name']?.toString() ?? '',
+        birthDate: DateTime.tryParse(json['birth_date']?.toString() ?? '') ?? DateTime(2000),
+        age: json['age'] as int? ?? 0,
+        gender: json['gender']?.toString() ?? 'Не указан',
+        position: json['position']?.toString() ?? '',
+        division: json['division']?.toString() ?? '',
+        patientGroupID: json['patient_group_id'] as int? ?? 0,
+        examinationType: json['examination_type'] as int?,
+        examinationView: json['examination_view'] as int?,
+        harmPoint: json['harm_point'] != null
+            ? HarmPointResponse.fromJson(json['harm_point'])
+            : HarmPointResponse.empty(),
+        personalInfo: json['personal_info'] != null
+            ? PersonalInfoResponse.fromJson(json['personal_info'])
+            : PersonalInfoResponse.empty(),
+        contactInfo: json['contact_info'] != null
+            ? ContactInfoResponse.fromJson(json['contact_info'])
+            : ContactInfoResponse.empty(),
+        analysisOrder: json['analysis_order'] != null
+            ? AnalysisOrderResponse.fromJson(json['analysis_order'])
+            : AnalysisOrderResponse.empty(),
+        statistics: json['statistics'] != null
+            ? PatientStatisticsResponse.fromJson(json['statistics'])
+            : null,
+        flgs: (json['flgs'] as List?)
+            ?.map((e) => FlgResponse.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+            [],
+        vaccines: (json['vaccines'] as List?)
+            ?.map((e) => VaccineAllResponse.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+            [],
+        receptions: (json['receptions'] as List?)
+            ?.map((e) => ReceptionResponse.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+            [],
+        specializations: (json['receptions'] as List?)
+            ?.map((e) => e['specialization'] != null
+            ? SpecializationResponse.fromJson(e['specialization'])
+            : SpecializationResponse.empty())
+            .toList() ??
+            [],
+      );
+    } catch (e, stack) {
+      print('Ошибка парсинга PatientResponse: $e\n$stack');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -97,7 +108,7 @@ class PatientResponse {
       'full_name': fullName,
       'birth_date': birthDate.toIso8601String(),
       'age': age,
-      'is_male': isMale,
+      'gender': gender,
       'position': position,
       'division': division,
       'patient_group_id': patientGroupID,
@@ -108,13 +119,15 @@ class PatientResponse {
       'contact_info': contactInfo.toJson(),
       'analysis_order': analysisOrder.toJson(),
       'statistics': statistics?.toJson(),
-      'flg': flgs.map((e) => e.toJson()).toList(),
-      'vaccines': vaccines?.map((e) => e.toJson()).toList(),
-      'receptions': receptions?.map((e) => e.toJson()).toList(),
-      'specializations': specializations?.map((e) => e.toJson()).toList(),
+      'flgs': flgs.map((e) => e.toJson()).toList(),
+      'vaccines': vaccines.map((e) => e.toJson()).toList(),
+      'receptions': receptions.map((e) => e.toJson()).toList(),
+      'specializations': specializations.map((e) => e.toJson()).toList(),
     };
   }
 }
+
+// ------------------ вложенные модели ------------------
 
 class HarmPointResponse {
   final int id;
@@ -123,8 +136,13 @@ class HarmPointResponse {
   HarmPointResponse({required this.id, required this.value});
 
   factory HarmPointResponse.fromJson(Map<String, dynamic> json) {
-    return HarmPointResponse(id: json['id'] as int, value: json['value'].toString());
+    return HarmPointResponse(
+      id: json['id'] as int? ?? 0,
+      value: json['value']?.toString() ?? '',
+    );
   }
+
+  factory HarmPointResponse.empty() => HarmPointResponse(id: 0, value: '');
 
   Map<String, dynamic> toJson() => {'id': id, 'value': value};
 }
@@ -148,14 +166,23 @@ class PersonalInfoResponse {
 
   factory PersonalInfoResponse.fromJson(Map<String, dynamic> json) {
     return PersonalInfoResponse(
-      id: json['id'] as int,
-      docNumber: json['doc_number'].toString(),
-      docSeries: json['doc_series'].toString(),
-      snils: json['snils'].toString(),
-      oms: json['oms'].toString(),
-      documentType: json['document_type'] as int,
+      id: json['id'] as int? ?? 0,
+      docNumber: json['doc_number']?.toString() ?? '',
+      docSeries: json['doc_series']?.toString() ?? '',
+      snils: json['snils']?.toString() ?? '',
+      oms: json['oms']?.toString() ?? '',
+      documentType: json['document_type'] as int?,
     );
   }
+
+  factory PersonalInfoResponse.empty() => PersonalInfoResponse(
+    id: 0,
+    docNumber: '',
+    docSeries: '',
+    snils: '',
+    oms: '',
+    documentType: null,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -182,12 +209,15 @@ class ContactInfoResponse {
 
   factory ContactInfoResponse.fromJson(Map<String, dynamic> json) {
     return ContactInfoResponse(
-      id: json['id'] as int,
-      phone: json['phone'].toString(),
-      email: json['email'].toString(),
-      address: json['address'].toString(),
+      id: json['id'] as int? ?? 0,
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
     );
   }
+
+  factory ContactInfoResponse.empty() =>
+      ContactInfoResponse(id: 0, phone: '', email: '', address: '');
 
   Map<String, dynamic> toJson() =>
       {'id': id, 'phone': phone, 'email': email, 'address': address};
@@ -210,11 +240,11 @@ class PatientStatisticsResponse {
 
   factory PatientStatisticsResponse.fromJson(Map<String, dynamic> json) {
     return PatientStatisticsResponse(
-      id: json['id'] as int,
-      totalReceptions: json['total_receptions'] as int,
-      completedReceptions: json['completed_receptions'] as int,
-      totalAnalysisOrders: json['total_analysis_orders'] as int,
-      completedAnalysisItems: json['completed_analysis_items'] as int,
+      id: json['id'] as int? ?? 0,
+      totalReceptions: json['total_receptions'] as int? ?? 0,
+      completedReceptions: json['completed_receptions'] as int? ?? 0,
+      totalAnalysisOrders: json['total_analysis_orders'] as int? ?? 0,
+      completedAnalysisItems: json['completed_analysis_items'] as int? ?? 0,
     );
   }
 
@@ -234,73 +264,13 @@ class SpecializationResponse {
   SpecializationResponse({required this.id, required this.title});
 
   factory SpecializationResponse.fromJson(Map<String, dynamic> json) {
-    return SpecializationResponse(id: json['id'] as int, title: json['title'].toString());
+    return SpecializationResponse(
+      id: json['id'] as int? ?? 0,
+      title: json['title']?.toString() ?? '',
+    );
   }
+
+  factory SpecializationResponse.empty() => SpecializationResponse(id: 0, title: '');
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title};
-}
-
-class PatientRequest {
-  final String fullName;
-  final String birthDate; // ISO-8601
-  final bool isMale;
-  final String position;
-  final String division;
-  final int examinationTypeId;
-  final int examinationViewId;
-  final int harmPointId;
-
-  final String phone;
-  final String email;
-  final String address;
-
-  final String docNumber;
-  final String docSeries;
-  final String? snils;
-  final String oms;
-  final int? documentTypeId;
-
-  PatientRequest({
-    required this.fullName,
-    required this.birthDate,
-    required this.isMale,
-    required this.position,
-    required this.division,
-    required this.examinationTypeId,
-    required this.examinationViewId,
-    required this.harmPointId,
-    required this.phone,
-    required this.email,
-    required this.address,
-    required this.docNumber,
-    required this.docSeries,
-    this.snils,
-    required this.oms,
-    this.documentTypeId,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      "full_name": fullName,
-      "birth_date": birthDate,
-      "is_male": isMale,
-      "position": position,
-      "division": division,
-      "examination_type_id": examinationTypeId,
-      "examination_view_id": examinationViewId,
-      "harm_point_id": harmPointId,
-      "contact_info": {
-        "phone": phone,
-        "email": email,
-        "address": address,
-      },
-      "personal_info": {
-        "doc_number": docNumber,
-        "doc_series": docSeries,
-        "snils": snils,
-        "oms": oms,
-        "document_type_id": documentTypeId,
-      },
-    };
-  }
 }

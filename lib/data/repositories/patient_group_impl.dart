@@ -23,6 +23,7 @@ class PatientGroupImpl {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+
       final List<dynamic> hits = jsonData['data']['hits'] ?? [];
 
       return hits
@@ -60,6 +61,9 @@ class PatientGroupRepository {
         for (var group in remoteGroups) {
           await localDao.insertGroup(group);
         }
+
+        final allOrgs = await localDao.getAllGroups();
+        print('группы в базе после вставки: $allOrgs');
 
         return remoteGroups;
       } catch (e) {

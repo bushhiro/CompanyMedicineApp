@@ -46,8 +46,6 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
   Map<String, dynamic>? _examinationView;
   Map<String, dynamic>? _harmPoint;
 
-  bool get _isMale => _gender == "Мужской";
-
   @override
   void initState() {
     super.initState();
@@ -340,7 +338,7 @@ class _AddPatientFormDialogState extends State<AddPatientFormDialog> {
         groupId: widget.groupId,
         fullName: fullName,
         birthDate: birthDate,
-        isMale: _isMale,
+        gender: _gender,
         position: _positionController.text,
         division: _divisionController.text,
         examinationTypeId: _examinationType?["id"],

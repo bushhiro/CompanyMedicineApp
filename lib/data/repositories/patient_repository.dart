@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PatientRepository {
-  final PatientDao dao = PatientDao();
+  final PatientDao localdao = PatientDao();
   final PatientRepositoryRemote remote;
   final NetworkService networkService;
 
@@ -21,24 +21,29 @@ class PatientRepository {
     final doctorId = prefs.getInt('doctorId') ?? 0;
 
     if (isOnline) {
+      print(isOnline);
       try {
         // Получаем с сервера
         final patients = await remote.getPatientsByGroup(groupId, doctorId);
-
         // Сохраняем в локальную базу
-        for (var p in patients) {
-          await dao.insertOrUpdatePatient(p);
-        }
 
         return patients;
       } catch (_) {
-        // fallback на локальную базу
-        return dao.getAllPatientsByGroup(groupId);
+        print( 'fallback на локальную базу');
+        return localdao.getAllPatientsByGroup(groupId);
       }
     } else {
       // оффлайн
-      return dao.getAllPatientsByGroup(groupId);
+      return localdao.getAllPatientsByGroup(groupId);
     }
+  }
+
+  Future<void> fetchAndSavePatientsByGroup(int groupId) async {
+    final patients = await getPatients(groupId);
+    for (var patient in patients) {
+      await localdao.insertOrUpdatePatient(patient);
+    }
+    print('patients в локальной бд: $patients');
   }
 
   /// Отправка оффлайн изменений на сервер
@@ -46,7 +51,7 @@ class PatientRepository {
     final bool isOnline = await networkService.isConnected;
     if (!isOnline) return;
 
-    final dirtyPatients = await dao.getDirtyPatients();
+    final dirtyPatients = await localdao.getDirtyPatients();
 
     for (var p in dirtyPatients) {
       try {
@@ -55,7 +60,7 @@ class PatientRepository {
           groupId: p.patientGroupID,
           fullName: p.fullName,
           birthDate: p.birthDate,
-          isMale: p.isMale,
+          gender: p.gender,
           position: p.position,
           division: p.division,
           examinationTypeId: p.examinationType ?? 0,
@@ -72,7 +77,7 @@ class PatientRepository {
         );
 
         // После успешного обновления сбрасываем флаг
-        await dao.markAsDirty(p.id); // можно изменить метод markAsDirty чтобы обнулять флаг
+        await localdao.markAsDirty(p.id); // можно изменить метод markAsDirty чтобы обнулять флаг
       } catch (e) {
         // Если ошибка, оставляем is_dirty = 1 для повторной синхронизации
         continue;
@@ -82,17 +87,17 @@ class PatientRepository {
 
   /// Обновление пациента оффлайн (редактирование)
   Future<void> updatePatientOffline(PatientResponse p) async {
-    final dbPatient = await dao.getAllPatientsByGroup(p.patientGroupID);
+    final dbPatient = await localdao.getAllPatientsByGroup(p.patientGroupID);
     final exists = dbPatient.any((dp) => dp.id == p.id);
     if (exists) {
-      await dao.insertOrUpdatePatient(p);
-      await dao.markAsDirty(p.id);
+      await localdao.insertOrUpdatePatient(p);
+      await localdao.markAsDirty(p.id);
     }
   }
 
   /// Удаление всех пациентов группы (вызывается при удалении списка)
   Future<void> deletePatientsByGroup(int groupId) async {
-    await dao.deletePatientsByGroup(groupId);
+    await localdao.deletePatientsByGroup(groupId);
   }
 }
 
@@ -108,6 +113,7 @@ class PatientRepositoryRemote {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body)['data'];
+      print(response.body);
       return data.map((e) => PatientResponse.fromJson(e)).toList();
     } else {
       throw Exception('Ошибка при загрузке пациентов: ${response.statusCode}');
@@ -118,7 +124,7 @@ class PatientRepositoryRemote {
     required int groupId,
     required String fullName,
     required DateTime birthDate,
-    required bool isMale,
+    required String gender,
     required String position,
     required String division,
     required int examinationTypeId,
@@ -139,7 +145,7 @@ class PatientRepositoryRemote {
       'full_name': fullName,
       'birth_date': birthDate.toUtc().toIso8601String(),
       'group_id': groupId,
-      'gender': isMale ? 'Мужской' : 'Женский',
+      'gender': gender,
       'position': position,
       'division': division,
       'examination_type_id': examinationTypeId,
