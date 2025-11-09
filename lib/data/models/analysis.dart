@@ -1,8 +1,8 @@
 class AnalysisOrderResponse {
-  final int id;
+  final int? id;
   final String? orderNumber;
   final int totalAmount;
-  final List<AnalysisOrderItemResponse> orderItems;
+  List<AnalysisOrderItemResponse> orderItems;
 
   AnalysisOrderResponse({
     required this.id,

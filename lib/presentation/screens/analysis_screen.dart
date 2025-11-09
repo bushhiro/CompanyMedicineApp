@@ -45,9 +45,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Future<void> _loadAssignedAnalyses() async {
     setState(() => _isLoading = true);
     try {
-      final assignedItems = widget.patient.analysisOrder.orderItems ?? [];
+      // Получаем назначенные анализы из локальной базы через DAO
+      final orders = await widget.analysisRepository.analysisOrderDao
+          .getOrdersByPatient(widget.patient.id);
 
-      // Инициализация состояния чекбоксов по isCompleted
+      final assignedItems = orders.isNotEmpty
+          ? orders.last.orderItems
+          : <AnalysisOrderItemResponse>[];
+
       final checkboxStates = <int, Map<String, bool>>{};
       for (var item in assignedItems) {
         checkboxStates[item.analysis.id] = {
@@ -104,7 +109,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               controller: _searchController,
               style: const TextStyle(color: AppColors.primaryTextColor),
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: AppColors.primaryTextColor),
+                prefixIcon:
+                const Icon(Icons.search, color: AppColors.primaryTextColor),
                 hintText: "Поиск по названию или коду...",
                 hintStyle: const TextStyle(color: AppColors.primaryTextColor),
                 filled: true,
@@ -117,7 +123,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             ),
           ),
           const SizedBox(height: 10),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Column(
@@ -141,7 +146,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 ),
                 const SizedBox(height: 6),
                 TextField(
-                  controller: _orderNumberController, // присваиваем контроллер
+                  controller: _orderNumberController,
                   decoration: InputDecoration(
                     hintText: "Введите номер направления",
                     filled: true,
@@ -156,7 +161,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 10),
           Expanded(
             child: _isLoading
@@ -169,7 +173,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               ),
             )
                 : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 8),
               itemCount: _filteredAnalyses.length,
               itemBuilder: (context, index) {
                 final item = _filteredAnalyses[index];
@@ -178,7 +183,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.backgroundColor,
                     borderRadius: BorderRadius.circular(10),
@@ -189,14 +195,16 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                       Expanded(
                         flex: 4,
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Text(
                                   item.analysis.code,
                                   style: const TextStyle(
-                                    color: AppColors.primaryTextColor,
+                                    color:
+                                    AppColors.primaryTextColor,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -217,7 +225,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                     setState(() {
                                       _checkboxStates[id] = {
                                         "done": v ?? false,
-                                        "debt": v == true ? false : _checkboxStates[id]?["debt"] ?? false,
+                                        "debt": v == true
+                                            ? false
+                                            : _checkboxStates[id]?["debt"] ??
+                                            false,
                                       };
                                     });
                                   },
@@ -248,14 +259,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                               ),
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
                               children: [
                                 Checkbox(
                                   value: state["debt"],
                                   onChanged: (v) {
                                     setState(() {
                                       _checkboxStates[id] = {
-                                        "done": v == true ? false : _checkboxStates[id]?["done"] ?? false,
+                                        "done": v == true
+                                            ? false
+                                            : _checkboxStates[id]?["done"] ??
+                                            false,
                                         "debt": v ?? false,
                                       };
                                     });
@@ -280,7 +295,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               },
             ),
           ),
-          // Кнопка "Сохранить"
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
@@ -289,25 +303,26 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 openLabel: "Сохранить",
                 showOpen: true,
                 onOpen: () async {
-                  final updatedItems = _checkboxStates.entries.map((e) {
-                    final analysisId = e.key;
-                    final state = e.value;
-                    final item = _assignedAnalyses.firstWhere((i) => i.analysis.id == analysisId);
+                  final orderNumber = _orderNumberController.text.trim();
+
+                  final updatedItems = _assignedAnalyses.map((item) {
+                    final state = _checkboxStates[item.analysis.id]!;
                     return AnalysisOrderItemResponse(
                       id: item.id,
-                      analysisId: analysisId,
+                      analysisId: item.analysis.id,
                       analysis: item.analysis,
                       isCompleted: state["done"] ?? false,
                     );
                   }).toList();
 
-                  final orderNumber = _orderNumberController.text.trim(); // берём номер направления
-
                   await widget.analysisRepository.savePatientAnalysisOrders(
                     widget.patient.id,
                     updatedItems,
-                    orderNumber: orderNumber, // передаем в репозиторий
+                    orderNumber: orderNumber.isEmpty ? null : orderNumber,
                   );
+
+                  // Перезагружаем данные из базы после сохранения
+                  await _loadAssignedAnalyses();
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Статусы анализов сохранены")),

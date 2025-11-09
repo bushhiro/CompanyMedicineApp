@@ -12,10 +12,13 @@ import 'action_buttons.dart';
 
 class CustomPatientCard extends StatefulWidget {
   final PatientResponse patient;
+  final AnalysisRepository analysisRepository; // добавляем
+
 
   const CustomPatientCard({
     super.key,
     required this.patient,
+    required this.analysisRepository,
   });
 
   @override
@@ -26,6 +29,15 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   final GlobalKey _specialistsButtonKey = GlobalKey();
   final GlobalKey _analysisButtonKey = GlobalKey();
   OverlayEntry? _overlayEntry;
+
+  Future<Map<String, int>> _calculateAnalysisStats(PatientResponse patient) async {
+    final orders = await widget.analysisRepository.analysisOrderDao
+        .getOrdersByPatient(patient.id);
+    final orderItems = orders.expand((o) => o.orderItems).toList();
+    final total = orderItems.length;
+    final done = orderItems.where((i) => i.isCompleted).length;
+    return {"total": total, "done": done};
+  }
 
   void _showContactDialog() {
     final p = widget.patient;
@@ -77,10 +89,6 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    final items = forSpecialists
-        ? widget.patient.receptions
-        : widget.patient.analysisOrder.orderItems;
-
     _overlayEntry = OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -92,7 +100,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
           children: [
             Positioned(
               left: offset.dx,
-              top: offset.dy-10 + size.height,
+              top: offset.dy - 10 + size.height,
               width: 400,
               child: Material(
                 elevation: 6,
@@ -103,21 +111,37 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     color: AppColors.patientCardStatusColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Column(
+                  child: forSpecialists
+                      ? Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: items.map<Widget>((item) {
-                      if (forSpecialists && item is ReceptionResponse) {
-                        final title = item.specialization?.title ?? "Неизвестно";
-                        final done = item.isCompleted;
-                        return _buildOverlayRow(title, done);
-                      } else if (!forSpecialists) {
-                        final analysisItem = item as AnalysisOrderItemResponse;
-                        final title = analysisItem.analysis.title;
-                        final done = analysisItem.isCompleted;
-                        return _buildOverlayRow(title, done);
-                      }
-                      return const SizedBox.shrink();
+                    children: (widget.patient.receptions)
+                        .map<Widget>((item) {
+                      final title = item.specialization?.title ?? "Неизвестно";
+                      final done = item.isCompleted;
+                      return _buildOverlayRow(title, done);
                     }).toList(),
+                  )
+                      : FutureBuilder<List<AnalysisOrderItemResponse>>(
+                    future: widget.analysisRepository.analysisOrderDao
+                        .getOrdersByPatient(widget.patient.id)
+                        .then((orders) => orders.expand((o) => o.orderItems).toList()),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text("Назначенные анализы отсутствуют"));
+                      }
+                      final analysisItems = snapshot.data!;
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: analysisItems.map<Widget>((analysisItem) {
+                          final title = analysisItem.analysis.title;
+                          final done = analysisItem.isCompleted;
+                          return _buildOverlayRow(title, done);
+                        }).toList(),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -234,16 +258,11 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            p.fullName,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            softWrap: true,
-          ),
+          Text(p.fullName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              softWrap: true),
           const SizedBox(height: 2),
-          const Text(
-            "Основное",
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          const Text("Основное", style: TextStyle(fontSize: 14, color: Colors.grey)),
           const SizedBox(height: 6),
           Text(p.position, style: const TextStyle(fontSize: 13)),
           const SizedBox(height: 6),
@@ -262,23 +281,30 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               minimumSize: const Size(double.infinity, 32),
-              textStyle: TextStyle(fontSize: 12),
+              textStyle: const TextStyle(fontSize: 12),
               iconColor: AppColors.primaryTextColor,
             ),
           ),
           const SizedBox(height: 6),
-          ElevatedButton.icon(
-            key: _analysisButtonKey,
-            onPressed: () => _toggleOverlay(forSpecialists: false),
-            icon: const Icon(Icons.science, size: 18),
-            label: Text("Анализы $testsDone/$testsTotal",
-                style: TextStyle(color: AppColors.primaryTextColor)),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                minimumSize: const Size(double.infinity, 32),
-                textStyle: const TextStyle(fontSize: 12),
-                iconColor: AppColors.primaryTextColor
-            ),
+          FutureBuilder<Map<String, int>>(
+            future: _calculateAnalysisStats(p),
+            builder: (context, snapshot) {
+              final total = snapshot.data?["total"] ?? 0;
+              final done = snapshot.data?["done"] ?? 0;
+              return ElevatedButton.icon(
+                key: _analysisButtonKey,
+                onPressed: () => _toggleOverlay(forSpecialists: false),
+                icon: const Icon(Icons.science, size: 18),
+                label: Text("Анализы $done/$total",
+                    style: TextStyle(color: AppColors.primaryTextColor)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  minimumSize: const Size(double.infinity, 32),
+                  textStyle: const TextStyle(fontSize: 12),
+                  iconColor: AppColors.primaryTextColor,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -294,27 +320,38 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _statusBadge("ФЛГ", p.flgs.isNotEmpty),
-                _statusBadge(
-                  "Прививки",
-                  p.vaccines.isNotEmpty,
-                  p.vaccines.isNotEmpty
-                      ? "${p.vaccines.length} шт."
-                      : null,
-                ),
-                if (p.analysisOrder.orderItems.isNotEmpty)
-                  ...p.analysisOrder.orderItems.map((item) {
-                    final title = item.analysis.title;
-                    final done = item.isCompleted;
-                    return _statusBadge(title, done, done ? "✓" : "✗");
-                  })
-                else
-                  _statusBadge("Анализы", false),
-              ],
+            child: FutureBuilder<List<AnalysisOrderResponse>>(
+              future: widget.analysisRepository.analysisOrderDao.getOrdersByPatient(p.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData) return const SizedBox.shrink();
+
+                final orderItems =
+                snapshot.data!.expand((o) => o.orderItems).toList();
+
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _statusBadge("ФЛГ", p.flgs.isNotEmpty),
+                    _statusBadge(
+                      "Прививки",
+                      p.vaccines.isNotEmpty,
+                      p.vaccines.isNotEmpty ? "${p.vaccines.length} шт." : null,
+                    ),
+                    if (orderItems.isNotEmpty)
+                      ...orderItems.map((item) {
+                        final title = item.analysis.title;
+                        final done = item.isCompleted;
+                        return _statusBadge(title, done, done ? "✓" : "✗");
+                      })
+                    else
+                      _statusBadge("Анализы", false),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -325,26 +362,20 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   /// Прививки
   Widget _buildVaccinesTab(PatientResponse p, int specialistsDone, int specialistsTotal,
       int testsDone, int testsTotal) {
-    final vaccines = p.vaccines ;
-
+    final vaccines = p.vaccines;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Левая панель с общей информацией
         _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
-        // Правая часть вкладки Прививки
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 20, top: 20),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Список прививок с прокруткой
                 Expanded(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 240, // ограничиваем высоту списка
-                    ),
+                    constraints: const BoxConstraints(maxHeight: 240),
                     child: vaccines.isNotEmpty
                         ? ListView.builder(
                       shrinkWrap: true,
@@ -356,32 +387,24 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           child: ListTile(
                             leading: const Icon(Icons.vaccines, color: Colors.green),
-                            title: Text(
-                              v.title,
-                              style: const TextStyle(
-                                color: AppColors.primaryTextColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            title: Text(v.title,
+                                style: const TextStyle(
+                                    color: AppColors.primaryTextColor,
+                                    fontWeight: FontWeight.bold)),
                             subtitle: Text(
-                              "Дата: ${v.date.day.toString().padLeft(2, '0')}.${v.date.month.toString().padLeft(2, '0')}.${v.date.year}",
-                              style: const TextStyle(color: AppColors.primaryTextColor),
-                            ),
+                                "Дата: ${v.date.day.toString().padLeft(2, '0')}.${v.date.month.toString().padLeft(2, '0')}.${v.date.year}",
+                                style: const TextStyle(color: AppColors.primaryTextColor)),
                           ),
                         );
                       },
                     )
                         : const Center(
-                      child: Text(
-                        "Прививки не найдены",
-                        style: TextStyle(color: AppColors.primaryTextColor),
-                      ),
+                      child: Text("Прививки не найдены",
+                          style: TextStyle(color: AppColors.primaryTextColor)),
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
                 Center(
                   child: SizedBox(
                     width: 120,
@@ -421,23 +444,13 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
   }
 
   /// ФЛГ
-  Widget _buildFlgTab(
-      PatientResponse p,
-      int specialistsDone,
-      int specialistsTotal,
-      int testsDone,
-      int testsTotal,
-      ) {
-    final flgs = p.flgs; // список ФЛГ
-    print("FLGS:::: $flgs");
-
+  Widget _buildFlgTab(PatientResponse p, int specialistsDone, int specialistsTotal,
+      int testsDone, int testsTotal) {
+    final flgs = p.flgs;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Левая панель с общей информацией
         _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
-
-        // Правая часть вкладки ФЛГ
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
@@ -445,11 +458,10 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                 ? Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Список ФЛГ
                 Expanded(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    physics: AlwaysScrollableScrollPhysics(),
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: flgs.length,
                     itemBuilder: (context, index) {
                       final f = flgs[index];
@@ -463,10 +475,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                     },
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // Кнопка "Добавить ФЛГ"
                 SizedBox(
                   width: 120,
                   height: 120,
@@ -476,12 +485,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                         context: context,
                         builder: (context) => AddFlgDialog(patientId: widget.patient.id),
                       );
-                      if (result != null) {
-                        setState(() {
-                          // Обновляем список после добавления
-                          // Можно вызвать fetchPatient() или добавить новый объект в flgs
-                        });
-                      }
+                      if (result != null) setState(() {});
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(8),
@@ -508,7 +512,6 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                 ),
               ],
             )
-            // Если список пуст — показываем кнопку по центру
                 : Center(
               child: SizedBox(
                 width: 120,
@@ -519,11 +522,7 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
                       context: context,
                       builder: (context) => AddFlgDialog(patientId: widget.patient.id),
                     );
-                    if (result != null) {
-                      setState(() {
-                        // Обновляем список после добавления
-                      });
-                    }
+                    if (result != null) setState(() {});
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(8),
@@ -560,42 +559,41 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
       int testsDone, int testsTotal) {
     return Row(
       children: [
-          _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
-          const Padding(
-            padding: EdgeInsets.only(left: 20, right: 20, top: 20),
-            child: Center(
-              child: Text(
-                "Информированное согласие пациента пока не загружено.",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
+        _buildLeftInfo(p, specialistsDone, specialistsTotal, testsDone, testsTotal),
+        const Padding(
+          padding: EdgeInsets.only(left: 20, right: 20, top: 20),
+          child: Center(
+            child: Text(
+              "Информированное согласие пациента пока не загружено.",
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+              textAlign: TextAlign.center,
             ),
           ),
-          SizedBox(
-            width: 120, // квадратная форма
-            height: 120,
-            child: ElevatedButton(
-              onPressed: () {},
-
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(8),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                side: const BorderSide(color: Colors.grey, width: 1), // тонкий серый бордер
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8), // слегка скруглённая
-                ),
+        ),
+        SizedBox(
+          width: 120,
+          height: 120,
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.all(8),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              side: const BorderSide(color: Colors.grey, width: 1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.edit, size: 40, color: Colors.blue),
-                  SizedBox(height: 6),
-                  Text(
-                    "Добавить Соглашение",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.edit, size: 40, color: Colors.blue),
+                SizedBox(height: 6),
+                Text(
+                  "Добавить Соглашение",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.black),
+                ),
               ],
             ),
           ),
@@ -604,36 +602,22 @@ class _CustomPatientCardState extends State<CustomPatientCard> {
     );
   }
 
+
   Widget _statusBadge(String label, bool hasData, [String? detail]) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: hasData ? Colors.green.shade100 : Colors.red.shade100,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: hasData ? Colors.green : Colors.red,
-          width: 1,
-        ),
+        border: Border.all(color: hasData ? Colors.green : Colors.red, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: hasData ? Colors.green.shade900 : Colors.red.shade900,
-            ),
-          ),
-          if (detail != null && detail.isNotEmpty) ...[
+          Text(label, style: TextStyle(fontSize: 13, color: hasData ? Colors.green.shade900 : Colors.red.shade900)),
+          if (detail != null) ...[
             const SizedBox(width: 6),
-            Text(
-              detail,
-              style: TextStyle(
-                fontSize: 12,
-                color: hasData ? Colors.green.shade700 : Colors.red.shade700,
-              ),
-            )
+            Text(detail, style: TextStyle(fontSize: 12, color: hasData ? Colors.green.shade700 : Colors.red.shade700)),
           ]
         ],
       ),
@@ -700,9 +684,9 @@ void showReceptionsDialog(BuildContext context, List<ReceptionResponse> receptio
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => AnalysisScreen(
-                          patient: patient,
-                          analysisRepository: AnalysisRepository(
-                              remoteService: AnalysisRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'))
+                            patient: patient,
+                            analysisRepository: AnalysisRepository(
+                                remoteService: AnalysisRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1'))
                         )),
                       );
                     },

@@ -19,7 +19,7 @@ class PatientResponse {
   final HarmPointResponse harmPoint;
   final PersonalInfoResponse personalInfo;
   final ContactInfoResponse contactInfo;
-  final AnalysisOrderResponse analysisOrder;
+  AnalysisOrderResponse analysisOrder;
   final PatientStatisticsResponse? statistics;
   final List<FlgResponse> flgs;
 

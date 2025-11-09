@@ -53,18 +53,17 @@ class AnalysisOrderDao {
     await db.insert(
       'analysis_order',
       {
-        'id': order.id,
         'patient_id': patientId,
         'order_number': order.orderNumber,
         'total_amount': order.totalAmount,
-        'order_items': jsonEncode(
-            order.orderItems.map((e) => e.toJson()).toList()),
+        'order_items': jsonEncode(order.orderItems.map((e) => e.toJson()).toList()),
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.replace, // заменяет только по patient_id
     );
+
+    print('saved');
   }
 
-  /// Получение всех заказов анализов для конкретного пациента
   Future<List<AnalysisOrderResponse>> getOrdersByPatient(int patientId) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(

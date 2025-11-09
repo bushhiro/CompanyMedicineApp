@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_app/data/repositories/analysis_repository.dart';
 import '../../../data/models/patient.dart';
 import '../../data/network/network_service.dart';
 import '../../data/repositories/patient_repository.dart';
@@ -176,7 +177,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                   itemBuilder: (context, index) {
                     final patient = patients[index];
                     return CustomPatientCard(
-                      patient: patient,
+                      patient: patient, 
+                      analysisRepository: AnalysisRepository(
+                          remoteService: AnalysisRemoteService(baseUrl: 'http://192.168.29.112:65322/api/v1')),
                     );
                   },
                 );

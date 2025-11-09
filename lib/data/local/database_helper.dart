@@ -61,7 +61,6 @@ class DBHelper {
         harm_point TEXT,
         personal_info TEXT,
         contact_info TEXT,
-        analysis_order TEXT,
         statistics TEXT,
         flgs TEXT,
         vaccines TEXT,
@@ -71,10 +70,38 @@ class DBHelper {
         FOREIGN KEY(patient_group_id) REFERENCES patient_group(id) ON DELETE CASCADE
       )
     ''');
+
+    await db.execute('''
+  CREATE TABLE manuals (
+    id INTEGER PRIMARY KEY,
+    type TEXT NOT NULL,
+    value TEXT NOT NULL
+  )
+''');
+
+    await db.execute('''
+    CREATE TABLE analysis (
+      id INTEGER PRIMARY KEY,
+      code TEXT NOT NULL,
+      title TEXT NOT NULL,
+      price INTEGER NOT NULL
+    );
+    ''');
+
+    await db.execute('''
+    CREATE TABLE analysis_order (
+      id INTEGER PRIMARY KEY,
+      patient_id INTEGER UNIQUE,
+      order_number TEXT,
+      total_amount INTEGER NOT NULL,
+      order_items TEXT NOT NULL, -- JSON
+      FOREIGN KEY(patient_id) REFERENCES patient(id) ON DELETE CASCADE
+    );
+    ''');
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if(oldVersion < 4){
+    if(oldVersion < 3){
 
     }
   }

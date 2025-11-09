@@ -58,7 +58,7 @@ class AnalysisRepository {
       {String? orderNumber}) async {
     // 1. Создаем объект заказа
     final analysisOrder = AnalysisOrderResponse(
-      id: 0, // если новый заказ, иначе реальный id
+      id: null, // если новый заказ, иначе реальный id
       orderNumber: orderNumber,
       totalAmount: items.fold<int>(
         0,
@@ -69,7 +69,9 @@ class AnalysisRepository {
 
 
     // 2. Сохраняем в локальную базу
+    print('saving');
     await analysisOrderDao.insertOrUpdateOrder(patientId, analysisOrder);
+
 
     // 3. Пытаемся отправить на сервер, если есть интернет
     final bool isOnline = await networkService.isConnected;
